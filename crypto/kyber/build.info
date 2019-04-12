@@ -1,0 +1,6 @@
+LIBS=../../libcrypto
+SOURCE[../../libcrypto]=\
+        kyber_gen.c kyber_lib.c kyber_err.c kyber_chk.c kyber_asn1.c kyber_ameth.c \
+        kyber_prn.c kyber_pmeth.c kyber_crpt.c kyber_meth.c \
+        fips202.c kyber_indcpa.c kyber_ntt.c kyber_poly.c kyber_polyvec.c \
+        kyber_precomp.c kyber_reduce.c kyber_verify.c kyber_ossl.c kyber_cbd.c

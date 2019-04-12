@@ -37,8 +37,10 @@
 # define EVP_PKS_RSA     0x0100
 # define EVP_PKS_DSA     0x0200
 # define EVP_PKS_EC      0x0400
+# define EVP_PK_KYBER    0x0800
 
 # define EVP_PKEY_NONE   NID_undef
+# define EVP_PKEY_KYBER  NID_kyber
 # define EVP_PKEY_RSA    NID_rsaEncryption
 # define EVP_PKEY_RSA2   NID_rsa
 # define EVP_PKEY_RSA_PSS NID_rsassaPss
@@ -404,6 +406,11 @@ typedef int (EVP_PBE_KEYGEN) (EVP_CIPHER_CTX *ctx, const char *pass,
 # ifndef OPENSSL_NO_RSA
 #  define EVP_PKEY_assign_RSA(pkey,rsa) EVP_PKEY_assign((pkey),EVP_PKEY_RSA,\
                                         (char *)(rsa))
+# endif
+
+# ifndef OPENSSL_NO_KYBER
+#  define EVP_PKEY_assign_Kyber(pkey,kyber) EVP_PKEY_assign((pkey),EVP_PKEY_KYBER,\
+                                        (char *)(kyber))
 # endif
 
 # ifndef OPENSSL_NO_DSA
@@ -1012,6 +1019,12 @@ struct rsa_st;
 int EVP_PKEY_set1_RSA(EVP_PKEY *pkey, struct rsa_st *key);
 struct rsa_st *EVP_PKEY_get0_RSA(EVP_PKEY *pkey);
 struct rsa_st *EVP_PKEY_get1_RSA(EVP_PKEY *pkey);
+# endif
+# ifndef OPENSSL_NO_KYBER
+struct kyber_st;
+int EVP_PKEY_set1_Kyber(EVP_PKEY *pkey, struct kyber_st *key);
+struct kyber_st *EVP_PKEY_get0_Kyber(EVP_PKEY *pkey);
+struct kyber_st *EVP_PKEY_get1_Kyber(EVP_PKEY *pkey);
 # endif
 # ifndef OPENSSL_NO_DSA
 struct dsa_st;

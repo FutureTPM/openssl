@@ -261,6 +261,73 @@ int i2d_RSA_PUBKEY_bio(BIO *bp, RSA *rsa)
 }
 #endif
 
+#ifndef OPENSSL_NO_KYBER
+
+# ifndef OPENSSL_NO_STDIO
+Kyber *d2i_KyberPrivateKey_fp(FILE *fp, Kyber **kyber)
+{
+    return ASN1_d2i_fp_of(Kyber, kyber_new, d2i_KyberPrivateKey, fp, kyber);
+}
+
+int i2d_KyberPrivateKey_fp(FILE *fp, Kyber *kyber)
+{
+    return ASN1_i2d_fp_of(Kyber, i2d_KyberPrivateKey, fp, kyber);
+}
+
+Kyber *d2i_KyberPublicKey_fp(FILE *fp, Kyber **kyber)
+{
+    return ASN1_d2i_fp_of(Kyber, kyber_new, d2i_KyberPublicKey, fp, kyber);
+}
+
+Kyber *d2i_Kyber_PUBKEY_fp(FILE *fp, Kyber **kyber)
+{
+    return ASN1_d2i_fp((void *(*)(void))
+                       kyber_new, (D2I_OF(void)) d2i_KYBER_PUBKEY, fp,
+                       (void **)kyber);
+}
+
+int i2d_KyberPublicKey_fp(FILE *fp, Kyber *kyber)
+{
+    return ASN1_i2d_fp_of(Kyber, i2d_KyberPublicKey, fp, kyber);
+}
+
+int i2d_Kyber_PUBKEY_fp(FILE *fp, Kyber *kyber)
+{
+    return ASN1_i2d_fp((I2D_OF(void))i2d_KYBER_PUBKEY, fp, kyber);
+}
+# endif
+
+Kyber *d2i_KyberPrivateKey_bio(BIO *bp, Kyber **kyber)
+{
+    return ASN1_d2i_bio_of(Kyber, kyber_new, d2i_KyberPrivateKey, bp, kyber);
+}
+
+int i2d_KyberPrivateKey_bio(BIO *bp, Kyber *kyber)
+{
+    return ASN1_i2d_bio_of(Kyber, i2d_KyberPrivateKey, bp, kyber);
+}
+
+Kyber *d2i_KyberPublicKey_bio(BIO *bp, Kyber **kyber)
+{
+    return ASN1_d2i_bio_of(Kyber, kyber_new, d2i_KyberPublicKey, bp, kyber);
+}
+
+Kyber *d2i_Kyber_PUBKEY_bio(BIO *bp, Kyber **kyber)
+{
+    return ASN1_d2i_bio_of(Kyber, kyber_new, d2i_KYBER_PUBKEY, bp, kyber);
+}
+
+int i2d_KyberPublicKey_bio(BIO *bp, Kyber *kyber)
+{
+    return ASN1_i2d_bio_of(Kyber, i2d_KyberPublicKey, bp, kyber);
+}
+
+int i2d_Kyber_PUBKEY_bio(BIO *bp, Kyber *kyber)
+{
+    return ASN1_i2d_bio_of(Kyber, i2d_KYBER_PUBKEY, bp, kyber);
+}
+#endif
+
 #ifndef OPENSSL_NO_DSA
 # ifndef OPENSSL_NO_STDIO
 DSA *d2i_DSAPrivateKey_fp(FILE *fp, DSA **dsa)

@@ -110,6 +110,9 @@ typedef struct dsa_method DSA_METHOD;
 typedef struct rsa_st RSA;
 typedef struct rsa_meth_st RSA_METHOD;
 
+typedef struct kyber_st Kyber;
+typedef struct kyber_meth_st KYBER_METHOD;
+
 typedef struct ec_key_st EC_KEY;
 typedef struct ec_key_method_st EC_KEY_METHOD;
 

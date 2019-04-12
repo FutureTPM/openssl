@@ -10,7 +10,7 @@
  */
 
 /* Serialized OID's */
-static const unsigned char so[7762] = {
+static const unsigned char so[7769] = {
     0x2A,0x86,0x48,0x86,0xF7,0x0D,                 /* [    0] OBJ_rsadsi */
     0x2A,0x86,0x48,0x86,0xF7,0x0D,0x01,            /* [    6] OBJ_pkcs */
     0x2A,0x86,0x48,0x86,0xF7,0x0D,0x02,0x02,       /* [   13] OBJ_md2 */
@@ -1076,9 +1076,10 @@ static const unsigned char so[7762] = {
     0x2A,0x85,0x03,0x07,0x01,0x02,0x01,0x01,0x04,  /* [ 7736] OBJ_id_tc26_gost_3410_2012_256_paramSetD */
     0x2A,0x86,0x48,0x86,0xF7,0x0D,0x02,0x0C,       /* [ 7745] OBJ_hmacWithSHA512_224 */
     0x2A,0x86,0x48,0x86,0xF7,0x0D,0x02,0x0D,       /* [ 7753] OBJ_hmacWithSHA512_256 */
+    0x2A,0x86,0x48,0xCE,0x38,0x04,0x04,            /* [ 7761] OBJ_kyber */
 };
 
-#define NUM_NID 1195
+#define NUM_NID 1197
 static const ASN1_OBJECT nid_objs[NUM_NID] = {
     {"UNDEF", "undefined", NID_undef},
     {"rsadsi", "RSA Data Security, Inc.", NID_rsadsi, 6, &so[0]},
@@ -2275,9 +2276,11 @@ static const ASN1_OBJECT nid_objs[NUM_NID] = {
     {"magma-mac", "magma-mac", NID_magma_mac},
     {"hmacWithSHA512-224", "hmacWithSHA512-224", NID_hmacWithSHA512_224, 8, &so[7745]},
     {"hmacWithSHA512-256", "hmacWithSHA512-256", NID_hmacWithSHA512_256, 8, &so[7753]},
+    {"Kyber", "kyber", NID_kyber, 7, &so[7761]},
+    {"KxKyber", "kx-kyber", NID_kx_kyber},
 };
 
-#define NUM_SN 1186
+#define NUM_SN 1188
 static const unsigned int sn_objs[NUM_SN] = {
      364,    /* "AD_DVCS" */
      419,    /* "AES-128-CBC" */
@@ -2448,10 +2451,12 @@ static const unsigned int sn_objs[NUM_SN] = {
     1038,    /* "KxECDHE" */
     1040,    /* "KxECDHE-PSK" */
     1045,    /* "KxGOST" */
+    1196,    /* "KxKyber" */
     1043,    /* "KxPSK" */
     1037,    /* "KxRSA" */
     1042,    /* "KxRSA_PSK" */
     1044,    /* "KxSRP" */
+    1195,    /* "Kyber" */
       15,    /* "L" */
      856,    /* "LocalKeySet" */
        3,    /* "MD2" */
@@ -3467,7 +3472,7 @@ static const unsigned int sn_objs[NUM_SN] = {
     1093,    /* "x509ExtAdmission" */
 };
 
-#define NUM_LN 1186
+#define NUM_LN 1188
 static const unsigned int ln_objs[NUM_LN] = {
      363,    /* "AD Time Stamping" */
      405,    /* "ANSI X9.62" */
@@ -4268,10 +4273,12 @@ static const unsigned int ln_objs[NUM_LN] = {
     1038,    /* "kx-ecdhe" */
     1040,    /* "kx-ecdhe-psk" */
     1045,    /* "kx-gost" */
+    1196,    /* "kx-kyber" */
     1043,    /* "kx-psk" */
     1037,    /* "kx-rsa" */
     1042,    /* "kx-rsa-psk" */
     1044,    /* "kx-srp" */
+    1195,    /* "kyber" */
      477,    /* "lastModifiedBy" */
      476,    /* "lastModifiedTime" */
      157,    /* "localKeyID" */
@@ -4657,7 +4664,7 @@ static const unsigned int ln_objs[NUM_LN] = {
      125,    /* "zlib compression" */
 };
 
-#define NUM_OBJ 1071
+#define NUM_OBJ 1072
 static const unsigned int obj_objs[NUM_OBJ] = {
        0,    /* OBJ_undef                        0 */
      181,    /* OBJ_iso                          1 */
@@ -5068,6 +5075,7 @@ static const unsigned int obj_objs[NUM_OBJ] = {
      433,    /* OBJ_hold_instruction_reject      1 2 840 10040 2 3 */
      116,    /* OBJ_dsa                          1 2 840 10040 4 1 */
      113,    /* OBJ_dsaWithSHA1                  1 2 840 10040 4 3 */
+    1195,    /* OBJ_kyber                        1 2 840 10040 4 4 */
      406,    /* OBJ_X9_62_prime_field            1 2 840 10045 1 1 */
      407,    /* OBJ_X9_62_characteristic_two_field 1 2 840 10045 1 2 */
      408,    /* OBJ_X9_62_id_ecPublicKey         1 2 840 10045 2 1 */

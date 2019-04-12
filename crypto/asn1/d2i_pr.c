@@ -96,6 +96,8 @@ EVP_PKEY *d2i_AutoPrivateKey(EVP_PKEY **a, const unsigned char **pp,
      */
     if (sk_ASN1_TYPE_num(inkey) == 6)
         keytype = EVP_PKEY_DSA;
+    else if (sk_ASN1_TYPE_num(inkey) == 2)
+        keytype = EVP_PKEY_KYBER;
     else if (sk_ASN1_TYPE_num(inkey) == 4)
         keytype = EVP_PKEY_EC;
     else if (sk_ASN1_TYPE_num(inkey) == 3) { /* This seems to be PKCS8, not

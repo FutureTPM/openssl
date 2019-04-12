@@ -18,6 +18,7 @@
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
 #include <openssl/dh.h>
+#include <openssl/kyber.h>
 #include <openssl/cmac.h>
 #include <openssl/engine.h>
 
@@ -477,6 +478,33 @@ RSA *EVP_PKEY_get1_RSA(EVP_PKEY *pkey)
     RSA *ret = EVP_PKEY_get0_RSA(pkey);
     if (ret != NULL)
         RSA_up_ref(ret);
+    return ret;
+}
+#endif
+
+#ifndef OPENSSL_NO_KYBER
+int EVP_PKEY_set1_Kyber(EVP_PKEY *pkey, Kyber *key)
+{
+    int ret = EVP_PKEY_assign_Kyber(pkey, key);
+    if (ret)
+        kyber_up_ref(key);
+    return ret;
+}
+
+Kyber *EVP_PKEY_get0_Kyber(EVP_PKEY *pkey)
+{
+    if (pkey->type != EVP_PKEY_KYBER) {
+        EVPerr(EVP_F_EVP_PKEY_GET0_KYBER, EVP_R_EXPECTING_AN_KYBER_KEY);
+        return NULL;
+    }
+    return pkey->pkey.kyber;
+}
+
+Kyber *EVP_PKEY_get1_Kyber(EVP_PKEY *pkey)
+{
+    Kyber *ret = EVP_PKEY_get0_Kyber(pkey);
+    if (ret != NULL)
+        kyber_up_ref(ret);
     return ret;
 }
 #endif

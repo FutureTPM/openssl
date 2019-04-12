@@ -126,6 +126,7 @@ struct engine_st {
     const char *id;
     const char *name;
     const RSA_METHOD *rsa_meth;
+    const KYBER_METHOD *kyber_meth;
     const DSA_METHOD *dsa_meth;
     const DH_METHOD *dh_meth;
     const EC_KEY_METHOD *ec_meth;

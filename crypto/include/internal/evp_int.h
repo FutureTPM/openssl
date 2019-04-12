@@ -106,6 +106,7 @@ extern const EVP_PKEY_METHOD ed448_pkey_meth;
 extern const EVP_PKEY_METHOD hmac_pkey_meth;
 extern const EVP_PKEY_METHOD rsa_pkey_meth;
 extern const EVP_PKEY_METHOD rsa_pss_pkey_meth;
+extern const EVP_PKEY_METHOD kyber_pkey_meth;
 extern const EVP_PKEY_METHOD scrypt_pkey_meth;
 extern const EVP_PKEY_METHOD tls1_prf_pkey_meth;
 extern const EVP_PKEY_METHOD hkdf_pkey_meth;
@@ -403,6 +404,9 @@ struct evp_pkey_st {
         void *ptr;
 # ifndef OPENSSL_NO_RSA
         struct rsa_st *rsa;     /* RSA */
+# endif
+# ifndef OPENSSL_NO_KYBER
+        struct kyber_st *kyber;     /* Kyber */
 # endif
 # ifndef OPENSSL_NO_DSA
         struct dsa_st *dsa;     /* DSA */

@@ -23,6 +23,7 @@
 
 # if OPENSSL_API_COMPAT < 0x10100000L
 #  include <openssl/rsa.h>
+#  include <openssl/kyber.h>
 #  include <openssl/dsa.h>
 #  include <openssl/dh.h>
 # endif
@@ -404,6 +405,14 @@ int i2d_RSAPublicKey_fp(FILE *fp, RSA *rsa);
 RSA *d2i_RSA_PUBKEY_fp(FILE *fp, RSA **rsa);
 int i2d_RSA_PUBKEY_fp(FILE *fp, RSA *rsa);
 #  endif
+#  ifndef OPENSSL_NO_KYBER
+Kyber *d2i_KyberPrivateKey_fp(FILE *fp, Kyber **kyber);
+int i2d_KyberPrivateKey_fp(FILE *fp, Kyber *kyber);
+Kyber *d2i_KyberPublicKey_fp(FILE *fp, Kyber **kyber);
+int i2d_KyberPublicKey_fp(FILE *fp, Kyber *kyber);
+Kyber *d2i_Kyber_PUBKEY_fp(FILE *fp, Kyber **kyber);
+int i2d_Kyber_PUBKEY_fp(FILE *fp, Kyber *kyber);
+#  endif
 #  ifndef OPENSSL_NO_DSA
 DSA *d2i_DSA_PUBKEY_fp(FILE *fp, DSA **dsa);
 int i2d_DSA_PUBKEY_fp(FILE *fp, DSA *dsa);
@@ -441,6 +450,14 @@ RSA *d2i_RSAPublicKey_bio(BIO *bp, RSA **rsa);
 int i2d_RSAPublicKey_bio(BIO *bp, RSA *rsa);
 RSA *d2i_RSA_PUBKEY_bio(BIO *bp, RSA **rsa);
 int i2d_RSA_PUBKEY_bio(BIO *bp, RSA *rsa);
+#  endif
+#  ifndef OPENSSL_NO_KYBER
+Kyber *d2i_KyberPrivateKey_bio(BIO *bp, Kyber **kyber);
+int i2d_KyberPrivateKey_bio(BIO *bp, Kyber *kyber);
+Kyber *d2i_KyberPublicKey_bio(BIO *bp, Kyber **kyber);
+int i2d_KyberPublicKey_bio(BIO *bp, Kyber *kyber);
+Kyber *d2i_Kyber_PUBKEY_bio(BIO *bp, Kyber **kyber);
+int i2d_Kyber_PUBKEY_bio(BIO *bp, Kyber *kyber);
 #  endif
 #  ifndef OPENSSL_NO_DSA
 DSA *d2i_DSA_PUBKEY_bio(BIO *bp, DSA **dsa);
@@ -516,6 +533,10 @@ EVP_PKEY *d2i_PUBKEY(EVP_PKEY **a, const unsigned char **pp, long length);
 int i2d_RSA_PUBKEY(RSA *a, unsigned char **pp);
 RSA *d2i_RSA_PUBKEY(RSA **a, const unsigned char **pp, long length);
 # endif
+# ifndef OPENSSL_NO_KYBER
+int i2d_KYBER_PUBKEY(Kyber *a, unsigned char **pp);
+Kyber *d2i_KYBER_PUBKEY(Kyber **a, const unsigned char **pp, long length);
+# endif
 # ifndef OPENSSL_NO_DSA
 int i2d_DSA_PUBKEY(DSA *a, unsigned char **pp);
 DSA *d2i_DSA_PUBKEY(DSA **a, const unsigned char **pp, long length);
@@ -523,6 +544,10 @@ DSA *d2i_DSA_PUBKEY(DSA **a, const unsigned char **pp, long length);
 # ifndef OPENSSL_NO_EC
 int i2d_EC_PUBKEY(EC_KEY *a, unsigned char **pp);
 EC_KEY *d2i_EC_PUBKEY(EC_KEY **a, const unsigned char **pp, long length);
+# endif
+# ifndef OPENSSL_NO_KYBER
+int i2d_KYBER_PUBKEY(Kyber *a, unsigned char **pp);
+Kyber *d2i_KYBER_PUBKEY(Kyber **a, const unsigned char **pp, long length);
 # endif
 
 DECLARE_ASN1_FUNCTIONS(X509_SIG)

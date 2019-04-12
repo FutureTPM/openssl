@@ -17,6 +17,7 @@
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
 #include <openssl/dh.h>
+#include <openssl/kyber.h>
 
 #ifndef OPENSSL_NO_RSA
 static RSA *pkey_get_rsa(EVP_PKEY *key, RSA **rsa);
@@ -27,6 +28,10 @@ static DSA *pkey_get_dsa(EVP_PKEY *key, DSA **dsa);
 
 #ifndef OPENSSL_NO_EC
 static EC_KEY *pkey_get_eckey(EVP_PKEY *key, EC_KEY **eckey);
+#endif
+
+#ifndef OPENSSL_NO_KYBER
+static Kyber *pkey_get_kyber(EVP_PKEY *key, Kyber **kyber);
 #endif
 
 IMPLEMENT_PEM_rw(X509_REQ, X509_REQ, PEM_STRING_X509_REQ, X509_REQ)
@@ -179,3 +184,46 @@ IMPLEMENT_PEM_write_const(DHparams, DH, PEM_STRING_DHPARAMS, DHparams)
     IMPLEMENT_PEM_write_const(DHxparams, DH, PEM_STRING_DHXPARAMS, DHxparams)
 #endif
 IMPLEMENT_PEM_rw(PUBKEY, EVP_PKEY, PEM_STRING_PUBLIC, PUBKEY)
+
+#ifndef OPENSSL_NO_KYBER
+static Kyber *pkey_get_kyber(EVP_PKEY *key, Kyber **kyber)
+{
+    Kyber *dtmp;
+    if (!key)
+        return NULL;
+    dtmp = EVP_PKEY_get1_Kyber(key);
+    EVP_PKEY_free(key);
+    if (!dtmp)
+        return NULL;
+    if (kyber) {
+        kyber_free(*kyber);
+        *kyber = dtmp;
+    }
+    return dtmp;
+}
+
+Kyber *PEM_read_bio_KyberPrivateKey(BIO *bp, Kyber **key, pem_password_cb *cb,
+                                  void *u)
+{
+    EVP_PKEY *pktmp;
+    pktmp = PEM_read_bio_PrivateKey(bp, NULL, cb, u);
+    return pkey_get_kyber(pktmp, key); /* will free pktmp */
+}
+
+IMPLEMENT_PEM_write_cb(KyberPrivateKey, Kyber, PEM_STRING_KYBER_PRIVATEKEY,
+                       KyberPrivateKey)
+IMPLEMENT_PEM_rw_const(KyberPublicKey, Kyber, PEM_STRING_KYBER_PUBLICKEY,
+                       KyberPublicKey)
+IMPLEMENT_PEM_rw(KYBER_PUBKEY, Kyber, PEM_STRING_PUBLIC, KYBER_PUBKEY)
+# ifndef OPENSSL_NO_STDIO
+Kyber *PEM_read_KyberPrivateKey(FILE *fp, Kyber **kyber, pem_password_cb *cb,
+                              void *u)
+{
+    EVP_PKEY *pktmp;
+    pktmp = PEM_read_PrivateKey(fp, NULL, cb, u);
+    return pkey_get_kyber(pktmp, kyber); /* will free pktmp */
+}
+
+# endif
+
+#endif

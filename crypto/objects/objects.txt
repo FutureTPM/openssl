@@ -44,6 +44,8 @@ oscca 1                 : sm-scheme
 X9cm 1			: DSA			: dsaEncryption
 X9cm 3			: DSA-SHA1		: dsaWithSHA1
 
+!Cname kyber
+X9cm 4			: Kyber			: kyber
 
 ISO-US 10045		: ansi-X9-62		: ANSI X9.62
 !module X9-62
@@ -1621,6 +1623,7 @@ id-pkinit 5                     : pkInitKDC             : Signing KDC Response
                             : KxRSA_PSK    : kx-rsa-psk
                             : KxPSK        : kx-psk
                             : KxSRP        : kx-srp
+                            : KxKyber      : kx-kyber
                             : KxGOST       : kx-gost
                             : KxANY        : kx-any
 
@@ -1636,6 +1639,8 @@ id-pkinit 5                     : pkInitKDC             : Signing KDC Response
                             : AuthANY      : auth-any
 # NID for Poly1305
                             : Poly1305     : poly1305
+# NID for Kyber
+#: Kyber        : kyber
 # NID for SipHash
                             : SipHash      : siphash
 

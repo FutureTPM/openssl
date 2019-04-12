@@ -107,7 +107,8 @@ DEFINE_STACK_OF(void)
 # define CRYPTO_EX_INDEX_APP             13
 # define CRYPTO_EX_INDEX_UI_METHOD       14
 # define CRYPTO_EX_INDEX_DRBG            15
-# define CRYPTO_EX_INDEX__COUNT          16
+# define CRYPTO_EX_INDEX_KYBER           16
+# define CRYPTO_EX_INDEX__COUNT          17
 
 /* No longer needed, so this is a no-op */
 #define OPENSSL_malloc_init() while(0) continue

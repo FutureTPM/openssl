@@ -132,6 +132,7 @@ int ERR_load_ASN1_strings(void);
 # define ASN1_F_X509_NAME_EX_D2I                          158
 # define ASN1_F_X509_NAME_EX_NEW                          171
 # define ASN1_F_X509_PKEY_NEW                             173
+# define ASN1_F_I2D_KYBER_PUBKEY                          234
 
 /*
  * ASN1 reason codes.

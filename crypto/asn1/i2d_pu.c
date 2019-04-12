@@ -13,6 +13,7 @@
 #include <openssl/evp.h>
 #include <openssl/objects.h>
 #include <openssl/rsa.h>
+#include <openssl/kyber.h>
 #include <openssl/dsa.h>
 #include <openssl/ec.h>
 
@@ -26,6 +27,10 @@ int i2d_PublicKey(EVP_PKEY *a, unsigned char **pp)
 #ifndef OPENSSL_NO_DSA
     case EVP_PKEY_DSA:
         return i2d_DSAPublicKey(EVP_PKEY_get0_DSA(a), pp);
+#endif
+#ifndef OPENSSL_NO_KYBER
+    case EVP_PKEY_KYBER:
+        return i2d_KyberPublicKey(EVP_PKEY_get0_Kyber(a), pp);
 #endif
 #ifndef OPENSSL_NO_EC
     case EVP_PKEY_EC:

@@ -17,6 +17,7 @@
 # if OPENSSL_API_COMPAT < 0x10100000L
 #  include <openssl/bn.h>
 #  include <openssl/rsa.h>
+#  include <openssl/kyber.h>
 #  include <openssl/dsa.h>
 #  include <openssl/dh.h>
 #  include <openssl/ec.h>
@@ -45,6 +46,7 @@ extern "C" {
 # define ENGINE_METHOD_PKEY_METHS        (unsigned int)0x0200
 # define ENGINE_METHOD_PKEY_ASN1_METHS   (unsigned int)0x0400
 # define ENGINE_METHOD_EC                (unsigned int)0x0800
+# define ENGINE_METHOD_KYBER             (unsigned int)0x1000
 /* Obvious all-or-nothing cases. */
 # define ENGINE_METHOD_ALL               (unsigned int)0xFFFF
 # define ENGINE_METHOD_NONE              (unsigned int)0x0000
@@ -359,6 +361,10 @@ int ENGINE_register_RSA(ENGINE *e);
 void ENGINE_unregister_RSA(ENGINE *e);
 void ENGINE_register_all_RSA(void);
 
+int ENGINE_register_Kyber(ENGINE *e);
+void ENGINE_unregister_Kyber(ENGINE *e);
+void ENGINE_register_all_Kyber(void);
+
 int ENGINE_register_DSA(ENGINE *e);
 void ENGINE_unregister_DSA(ENGINE *e);
 void ENGINE_register_all_DSA(void);
@@ -468,6 +474,7 @@ int ENGINE_up_ref(ENGINE *e);
 int ENGINE_set_id(ENGINE *e, const char *id);
 int ENGINE_set_name(ENGINE *e, const char *name);
 int ENGINE_set_RSA(ENGINE *e, const RSA_METHOD *rsa_meth);
+int ENGINE_set_Kyber(ENGINE *e, const KYBER_METHOD *kyber_meth);
 int ENGINE_set_DSA(ENGINE *e, const DSA_METHOD *dsa_meth);
 int ENGINE_set_EC(ENGINE *e, const EC_KEY_METHOD *ecdsa_meth);
 int ENGINE_set_DH(ENGINE *e, const DH_METHOD *dh_meth);
@@ -511,6 +518,7 @@ void *ENGINE_get_ex_data(const ENGINE *e, int idx);
 const char *ENGINE_get_id(const ENGINE *e);
 const char *ENGINE_get_name(const ENGINE *e);
 const RSA_METHOD *ENGINE_get_RSA(const ENGINE *e);
+const KYBER_METHOD *ENGINE_get_Kyber(const ENGINE *e);
 const DSA_METHOD *ENGINE_get_DSA(const ENGINE *e);
 const EC_KEY_METHOD *ENGINE_get_EC(const ENGINE *e);
 const DH_METHOD *ENGINE_get_DH(const ENGINE *e);
@@ -587,6 +595,7 @@ int ENGINE_load_ssl_client_cert(ENGINE *e, SSL *s,
  * discarded.
  */
 ENGINE *ENGINE_get_default_RSA(void);
+ENGINE *ENGINE_get_default_Kyber(void);
 /* Same for the other "methods" */
 ENGINE *ENGINE_get_default_DSA(void);
 ENGINE *ENGINE_get_default_EC(void);
@@ -608,6 +617,7 @@ ENGINE *ENGINE_get_pkey_asn1_meth_engine(int nid);
  * reference 'e'.
  */
 int ENGINE_set_default_RSA(ENGINE *e);
+int ENGINE_set_default_Kyber(ENGINE *e);
 int ENGINE_set_default_string(ENGINE *e, const char *def_list);
 /* Same for the other "methods" */
 int ENGINE_set_default_DSA(ENGINE *e);

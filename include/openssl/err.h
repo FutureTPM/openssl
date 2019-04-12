@@ -95,12 +95,14 @@ typedef struct err_state_st {
 # define ERR_LIB_ASYNC           51
 # define ERR_LIB_KDF             52
 # define ERR_LIB_SM2             53
+# define ERR_LIB_KYBER           54
 
 # define ERR_LIB_USER            128
 
 # define SYSerr(f,r)  ERR_PUT_error(ERR_LIB_SYS,(f),(r),OPENSSL_FILE,OPENSSL_LINE)
 # define BNerr(f,r)   ERR_PUT_error(ERR_LIB_BN,(f),(r),OPENSSL_FILE,OPENSSL_LINE)
 # define RSAerr(f,r)  ERR_PUT_error(ERR_LIB_RSA,(f),(r),OPENSSL_FILE,OPENSSL_LINE)
+# define Kybererr(f,r)  ERR_PUT_error(ERR_LIB_KYBER,(f),(r),OPENSSL_FILE,OPENSSL_LINE)
 # define DHerr(f,r)   ERR_PUT_error(ERR_LIB_DH,(f),(r),OPENSSL_FILE,OPENSSL_LINE)
 # define EVPerr(f,r)  ERR_PUT_error(ERR_LIB_EVP,(f),(r),OPENSSL_FILE,OPENSSL_LINE)
 # define BUFerr(f,r)  ERR_PUT_error(ERR_LIB_BUF,(f),(r),OPENSSL_FILE,OPENSSL_LINE)
@@ -174,6 +176,7 @@ typedef struct err_state_st {
 # define ERR_R_SYS_LIB   ERR_LIB_SYS/* 2 */
 # define ERR_R_BN_LIB    ERR_LIB_BN/* 3 */
 # define ERR_R_RSA_LIB   ERR_LIB_RSA/* 4 */
+# define ERR_R_KYBER_LIB ERR_LIB_KYBER
 # define ERR_R_DH_LIB    ERR_LIB_DH/* 5 */
 # define ERR_R_EVP_LIB   ERR_LIB_EVP/* 6 */
 # define ERR_R_BUF_LIB   ERR_LIB_BUF/* 7 */
