@@ -3322,6 +3322,8 @@ void ssl3_free(SSL *s)
     s->s3->peer_tmp = NULL;
     EVP_PKEY_free(s->s3->tmp.pkey);
     s->s3->tmp.pkey = NULL;
+    EVP_PKEY_free(s->s3->tmp.kyber_pkey);
+    s->s3->tmp.kyber_pkey = NULL;
 #endif
 
     OPENSSL_free(s->s3->tmp.ctype);
@@ -3353,6 +3355,7 @@ int ssl3_clear(SSL *s)
 
 #if !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_DH) || !defined(OPENSSL_NO_KYBER)
     EVP_PKEY_free(s->s3->tmp.pkey);
+    EVP_PKEY_free(s->s3->tmp.kyber_pkey);
     EVP_PKEY_free(s->s3->peer_tmp);
 #endif                          /* !OPENSSL_NO_EC */
 
@@ -3368,6 +3371,8 @@ int ssl3_clear(SSL *s)
         return 0;
 
     s->version = SSL3_VERSION;
+    /* Need invalid value when initializing key type */
+    s->s3->key_type = 2;
 
 #if !defined(OPENSSL_NO_NEXTPROTONEG)
     OPENSSL_free(s->ext.npn);

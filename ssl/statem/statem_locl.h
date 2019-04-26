@@ -32,6 +32,8 @@
 /* Dummy message type */
 #define SSL3_MT_DUMMY   -1
 
+#define KYBER_KEX_CODE 0xbabe
+
 extern const unsigned char hrrrandom[];
 
 /* Message processing return codes */

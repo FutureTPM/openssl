@@ -1574,8 +1574,11 @@ typedef struct ssl3_state_st {
         int message_type;
         /* used to hold the new cipher we are going to use */
         const SSL_CIPHER *new_cipher;
-# if !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_DH) || !defined(OPENSSL_NO_KYBER)
-        EVP_PKEY *pkey;         /* holds short lived DH/ECDH/Kyber key */
+# if !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_DH)
+        EVP_PKEY *pkey;         /* holds short lived DH/ECDH key */
+# endif
+# if !defined(OPENSSL_NO_KYBER)
+        EVP_PKEY *kyber_pkey;         /* holds short lived Kyber key */
 # endif
         /* used for certificate requests */
         int cert_req;
@@ -1691,6 +1694,7 @@ typedef struct ssl3_state_st {
 # if !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_DH) || !defined(OPENSSL_NO_KYBER)
     /* The group_id for the DH/ECDH key */
     uint16_t group_id;
+    uint16_t key_type; /* 0 => ECDHE/DH; 1 => Kyber */
     EVP_PKEY *peer_tmp;
 # endif
 

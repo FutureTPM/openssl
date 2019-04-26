@@ -584,11 +584,17 @@ EXT_RETURN tls_construct_ctos_psk_kex_modes(SSL *s, WPACKET *pkt,
 #ifndef OPENSSL_NO_TLS1_3
 static int add_key_share(SSL *s, WPACKET *pkt, unsigned int curve_id)
 {
-    unsigned char *pk = NULL;
-    EVP_PKEY *kyber_key_share_key = NULL;
-    size_t pk_size;
+    unsigned char *pk = NULL, *encoded_point = NULL;
+    EVP_PKEY *kyber_key_share_key = NULL, *ecdhe_key_share_key = NULL;
+    size_t pk_size, encodedlen;
 
-    if (s->s3->tmp.pkey != NULL) {
+    /*
+     * Handle Kyber key
+     *
+     * We prefer to use a QR key exchange rather than ECDHE if the server
+     * supports it.
+     */
+    if (s->s3->tmp.kyber_pkey != NULL) {
         if (!ossl_assert(s->hello_retry_request == SSL_HRR_PENDING)) {
             SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_ADD_KEY_SHARE,
                      ERR_R_INTERNAL_ERROR);
@@ -597,7 +603,7 @@ static int add_key_share(SSL *s, WPACKET *pkt, unsigned int curve_id)
         /*
          * Could happen if we got an HRR that wasn't requesting a new key_share
          */
-        kyber_key_share_key = s->s3->tmp.pkey;
+        kyber_key_share_key = s->s3->tmp.kyber_pkey;
     } else {
         kyber_key_share_key = ssl_generate_pkey_kyber(s);
         if (kyber_key_share_key == NULL) {
@@ -609,12 +615,13 @@ static int add_key_share(SSL *s, WPACKET *pkt, unsigned int curve_id)
     /* Read the public key. */
     pk_size = EVP_PKEY_get1_tls_kyber_pk(kyber_key_share_key, &pk);
     if (pk_size == 0) {
-        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_ADD_KEY_SHARE, ERR_R_EC_LIB);
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_ADD_KEY_SHARE, ERR_R_KYBER_LIB);
         goto err;
     }
 
     /* Create KeyShareEntry */
-    if (!WPACKET_sub_memcpy_u16(pkt, pk, pk_size)) {
+    if (!WPACKET_put_bytes_u16(pkt, KYBER_KEX_CODE)
+            || !WPACKET_sub_memcpy_u16(pkt, pk, pk_size)) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_ADD_KEY_SHARE,
                  ERR_R_INTERNAL_ERROR);
         goto err;
@@ -625,13 +632,57 @@ static int add_key_share(SSL *s, WPACKET *pkt, unsigned int curve_id)
      * going to need to be able to save more than one EVP_PKEY. For now
      * we reuse the existing tmp.pkey
      */
-    s->s3->tmp.pkey = kyber_key_share_key;
+    s->s3->tmp.kyber_pkey = kyber_key_share_key;
     OPENSSL_free(pk);
+
+    /*
+     * Handle ECDHE key
+     */
+    if (s->s3->tmp.pkey != NULL) {
+        if (!ossl_assert(s->hello_retry_request == SSL_HRR_PENDING)) {
+            SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_ADD_KEY_SHARE,
+                     ERR_R_INTERNAL_ERROR);
+            return 0;
+        }
+        /*
+         * Could happen if we got an HRR that wasn't requesting a new key_share
+         */
+        ecdhe_key_share_key = s->s3->tmp.pkey;
+    } else {
+        ecdhe_key_share_key = ssl_generate_pkey_group(s, curve_id);
+        if (ecdhe_key_share_key == NULL) {
+            /* SSLfatal() already called */
+            return 0;
+        }
+    }
+
+    /* Encode the public key. */
+    encodedlen = EVP_PKEY_get1_tls_encodedpoint(ecdhe_key_share_key, &encoded_point);
+    if (encodedlen == 0) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_ADD_KEY_SHARE, ERR_R_EC_LIB);
+        goto err;
+    }
+
+    /* Create KeyShareEntry */
+    if (!WPACKET_put_bytes_u16(pkt, curve_id)
+            || !WPACKET_sub_memcpy_u16(pkt, encoded_point, encodedlen)) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_ADD_KEY_SHARE,
+                 ERR_R_INTERNAL_ERROR);
+        goto err;
+    }
+
+    s->s3->tmp.pkey = ecdhe_key_share_key;
+    s->s3->group_id = curve_id;
+    OPENSSL_free(encoded_point);
 
     return 1;
  err:
-    if (s->s3->tmp.pkey == NULL)
+    if (s->s3->tmp.kyber_pkey == NULL)
         EVP_PKEY_free(kyber_key_share_key);
+    if (s->s3->tmp.pkey == NULL)
+        EVP_PKEY_free(ecdhe_key_share_key);
+    OPENSSL_free(pk);
+    OPENSSL_free(encoded_point);
     return 0;
 }
 #endif
@@ -1782,60 +1833,152 @@ int tls_parse_stoc_key_share(SSL *s, PACKET *pkt, unsigned int context, X509 *x,
 {
 #ifndef OPENSSL_NO_TLS1_3
     unsigned char pms[32];
-    PACKET ciphertext;
-    EVP_PKEY *ckey = s->s3->tmp.pkey;
+    PACKET data;
+    EVP_PKEY *ckey = NULL, *skey = NULL;
     EVP_PKEY_CTX *pctx = NULL;
-    size_t pmslen;
+    unsigned int key_type;
+    size_t pmslen = 32;
 
     /* Sanity check */
-    if (ckey == NULL || s->s3->peer_tmp != NULL) {
+    if (s->s3->peer_tmp != NULL) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PARSE_STOC_KEY_SHARE,
                  ERR_R_INTERNAL_ERROR);
         return 0;
     }
 
-    if ((context & SSL_EXT_TLS1_3_HELLO_RETRY_REQUEST) != 0) {
-        if (PACKET_remaining(pkt) != 0) {
-            SSLfatal(s, SSL_AD_DECODE_ERROR, SSL_F_TLS_PARSE_STOC_KEY_SHARE,
-                     SSL_R_LENGTH_MISMATCH);
-            return 0;
-        }
-
-        EVP_PKEY_free(s->s3->tmp.pkey);
-        s->s3->tmp.pkey = NULL;
-        return 1;
-    }
-
-    if (!PACKET_as_length_prefixed_2(pkt, &ciphertext)
-            || PACKET_remaining(&ciphertext) == 0) {
+    if (!PACKET_get_net_2(pkt, &key_type)) {
         SSLfatal(s, SSL_AD_DECODE_ERROR, SSL_F_TLS_PARSE_STOC_KEY_SHARE,
                  SSL_R_LENGTH_MISMATCH);
         return 0;
     }
 
-    pctx = EVP_PKEY_CTX_new(ckey, NULL);
-    if (pctx == NULL) {
-        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PROCESS_CKE_KYBER,
-                 ERR_R_MALLOC_FAILURE);
-        return 0;
+    if ((context & SSL_EXT_TLS1_3_HELLO_RETRY_REQUEST) != 0) {
+        if (key_type == KYBER_KEX_CODE) {
+            if (PACKET_remaining(pkt) != 0) {
+                SSLfatal(s, SSL_AD_DECODE_ERROR, SSL_F_TLS_PARSE_STOC_KEY_SHARE,
+                         SSL_R_LENGTH_MISMATCH);
+                return 0;
+            }
+
+            EVP_PKEY_free(s->s3->tmp.kyber_pkey);
+            s->s3->tmp.kyber_pkey = NULL;
+        } else {
+            const uint16_t *pgroups = NULL;
+            size_t i, num_groups;
+
+            if (PACKET_remaining(pkt) != 0) {
+                SSLfatal(s, SSL_AD_DECODE_ERROR, SSL_F_TLS_PARSE_STOC_KEY_SHARE,
+                         SSL_R_LENGTH_MISMATCH);
+                return 0;
+            }
+
+            /*
+             * It is an error if the HelloRetryRequest wants a key_share that we
+             * already sent in the first ClientHello
+             */
+            if (key_type == s->s3->group_id) {
+                SSLfatal(s, SSL_AD_ILLEGAL_PARAMETER,
+                         SSL_F_TLS_PARSE_STOC_KEY_SHARE, SSL_R_BAD_KEY_SHARE);
+                return 0;
+            }
+
+            /* Validate the selected group is one we support */
+            tls1_get_supported_groups(s, &pgroups, &num_groups);
+            for (i = 0; i < num_groups; i++) {
+                if (key_type == pgroups[i])
+                    break;
+            }
+            if (i >= num_groups
+                    || !tls_curve_allowed(s, key_type, SSL_SECOP_CURVE_SUPPORTED)) {
+                SSLfatal(s, SSL_AD_ILLEGAL_PARAMETER,
+                        SSL_F_TLS_PARSE_STOC_KEY_SHARE, SSL_R_BAD_KEY_SHARE);
+                return 0;
+            }
+            s->s3->group_id = key_type;
+            EVP_PKEY_free(s->s3->tmp.pkey);
+            s->s3->tmp.pkey = NULL;
+        }
+        return 1;
     }
-    if (EVP_PKEY_decrypt_init(pctx) <= 0) {
-        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_STOC_KEY_SHARE,
-                 SSL_R_LIBRARY_BUG);
-        return EXT_RETURN_FAIL;
-    }
-    if (EVP_PKEY_decrypt(pctx, pms, &pmslen,
-                PACKET_data(&ciphertext), PACKET_remaining(&ciphertext)) <= 0) {
-        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_STOC_KEY_SHARE,
-                 SSL_R_LIBRARY_BUG);
+
+    if (key_type != KYBER_KEX_CODE && key_type != s->s3->group_id) {
+        /*
+         * This isn't for the group that we sent in the original
+         * key_share!
+         */
+        SSLfatal(s, SSL_AD_ILLEGAL_PARAMETER, SSL_F_TLS_PARSE_STOC_KEY_SHARE,
+                 SSL_R_BAD_KEY_SHARE);
         return 0;
     }
 
-    if (!tls13_generate_handshake_secret(s, pms, pmslen)) {
-        /* SSLfatal() already called */
+    if (!PACKET_as_length_prefixed_2(pkt, &data)
+            || PACKET_remaining(&data) == 0) {
+        SSLfatal(s, SSL_AD_DECODE_ERROR, SSL_F_TLS_PARSE_STOC_KEY_SHARE,
+                 SSL_R_LENGTH_MISMATCH);
         return 0;
     }
-    s->s3->peer_tmp = ckey;
+
+    /* Handle Kyber key */
+    if (key_type == KYBER_KEX_CODE) {
+        ckey = s->s3->tmp.kyber_pkey;
+        if (ckey == NULL) {
+            SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PARSE_STOC_KEY_SHARE,
+                     ERR_R_INTERNAL_ERROR);
+            return 0;
+        }
+        pctx = EVP_PKEY_CTX_new(ckey, NULL);
+        if (pctx == NULL) {
+            SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PROCESS_CKE_KYBER,
+                     ERR_R_MALLOC_FAILURE);
+            return 0;
+        }
+        if (EVP_PKEY_decrypt_init(pctx) <= 0) {
+            SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_STOC_KEY_SHARE,
+                     SSL_R_LIBRARY_BUG);
+            return EXT_RETURN_FAIL;
+        }
+        if (EVP_PKEY_decrypt(pctx, pms, &pmslen,
+                    PACKET_data(&data), PACKET_remaining(&data)) <= 0) {
+            SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_STOC_KEY_SHARE,
+                     SSL_R_LIBRARY_BUG);
+            return 0;
+        }
+
+        if (!tls13_generate_handshake_secret(s, pms, pmslen)) {
+            /* SSLfatal() already called */
+            return 0;
+        }
+        s->s3->peer_tmp = ckey;
+    } else {
+        ckey = s->s3->tmp.pkey;
+        if (ckey == NULL) {
+            SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PARSE_STOC_KEY_SHARE,
+                     ERR_R_INTERNAL_ERROR);
+            return 0;
+        }
+        /* Handle ECDHE key */
+        skey = ssl_generate_pkey(ckey);
+        if (skey == NULL) {
+            SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PARSE_STOC_KEY_SHARE,
+                     ERR_R_MALLOC_FAILURE);
+            return 0;
+        }
+
+        if (!EVP_PKEY_set1_tls_encodedpoint(skey, PACKET_data(&data),
+                                            PACKET_remaining(&data))) {
+            SSLfatal(s, SSL_AD_ILLEGAL_PARAMETER, SSL_F_TLS_PARSE_STOC_KEY_SHARE,
+                     SSL_R_BAD_ECPOINT);
+            EVP_PKEY_free(skey);
+            return 0;
+        }
+
+        if (ssl_derive(s, ckey, skey, 1) == 0) {
+            /* SSLfatal() already called */
+            EVP_PKEY_free(skey);
+            return 0;
+        }
+        s->s3->peer_tmp = skey;
+    }
 #endif
 
     return 1;
