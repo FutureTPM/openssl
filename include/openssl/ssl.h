@@ -66,6 +66,7 @@ extern "C" {
 # define SSL_TXT_NULL            "NULL"
 
 # define SSL_TXT_kRSA            "kRSA"
+# define SSL_TXT_kKYBER          "kKYBER"
 # define SSL_TXT_kDHr            "kDHr"/* this cipher class has been removed */
 # define SSL_TXT_kDHd            "kDHd"/* this cipher class has been removed */
 # define SSL_TXT_kDH             "kDH"/* this cipher class has been removed */
@@ -101,6 +102,7 @@ extern "C" {
 # define SSL_TXT_EDH             "EDH"/* alias for DHE */
 # define SSL_TXT_ADH             "ADH"
 # define SSL_TXT_RSA             "RSA"
+# define SSL_TXT_KYBER           "KYBER"
 # define SSL_TXT_ECDH            "ECDH"
 # define SSL_TXT_EECDH           "EECDH"/* alias for ECDHE" */
 # define SSL_TXT_ECDHE           "ECDHE"/* same as "kECDHE:-AECDH" */
@@ -1192,6 +1194,7 @@ DECLARE_PEM_rw(SSL_SESSION, SSL_SESSION)
 # define SSL_ERROR_WANT_CLIENT_HELLO_CB 11
 # define SSL_CTRL_SET_TMP_DH                     3
 # define SSL_CTRL_SET_TMP_ECDH                   4
+# define SSL_CTRL_SET_TMP_KYBER                  5
 # define SSL_CTRL_SET_TMP_DH_CB                  6
 # define SSL_CTRL_GET_CLIENT_CERT_REQUEST        9
 # define SSL_CTRL_GET_NUM_RENEGOTIATIONS         10

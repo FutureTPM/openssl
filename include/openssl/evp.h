@@ -1079,6 +1079,10 @@ int EVP_PKEY_set1_tls_encodedpoint(EVP_PKEY *pkey,
                                    const unsigned char *pt, size_t ptlen);
 size_t EVP_PKEY_get1_tls_encodedpoint(EVP_PKEY *pkey, unsigned char **ppt);
 
+int EVP_PKEY_set1_tls_kyber_pk(EVP_PKEY *pkey,
+                                   const unsigned char *pk, size_t pklen);
+size_t EVP_PKEY_get1_tls_kyber_pk(EVP_PKEY *pkey, unsigned char **ppt);
+
 int EVP_CIPHER_type(const EVP_CIPHER *ctx);
 
 /* calls methods */
@@ -1150,6 +1154,9 @@ int EVP_PBE_get(int *ptype, int *ppbe_nid, size_t num);
 
 # define ASN1_PKEY_CTRL_SET1_TLS_ENCPT   0x9
 # define ASN1_PKEY_CTRL_GET1_TLS_ENCPT   0xa
+
+# define ASN1_PKEY_CTRL_SET1_TLS_KYBER_PK   0xb
+# define ASN1_PKEY_CTRL_GET1_TLS_KYBER_PK   0xc
 
 int EVP_PKEY_asn1_get_count(void);
 const EVP_PKEY_ASN1_METHOD *EVP_PKEY_asn1_get0(int idx);

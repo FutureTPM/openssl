@@ -164,32 +164,43 @@ static int kyber_priv_print(BIO *bp, const EVP_PKEY *pkey, int indent,
     return pkey_kyber_print(bp, pkey, indent, 1);
 }
 
-// TODO: Not sure what this does
-//static int kyber_pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2)
-//{
-//    X509_ALGOR *alg = NULL;
-//
-//    switch (op) {
-//
-//    case ASN1_PKEY_CTRL_PKCS7_ENCRYPT:
-//        if (arg1 == 0)
-//            PKCS7_RECIP_INFO_get0_alg(arg2, &alg);
-//        break;
-//    case ASN1_PKEY_CTRL_DEFAULT_MD_NID:
-//        *(int *)arg2 = NID_sha256;
-//        return 1;
-//
-//    default:
-//        return -2;
-//
-//    }
-//
-//    if (alg)
-//        X509_ALGOR_set0(alg, OBJ_nid2obj(NID_kyberEncryption), V_ASN1_NULL, 0);
-//
-//    return 1;
-//
-//}
+static int kyber_pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2)
+{
+    X509_ALGOR *alg = NULL;
+
+    switch (op) {
+
+    case ASN1_PKEY_CTRL_PKCS7_ENCRYPT:
+        if (arg1 == 0)
+            PKCS7_RECIP_INFO_get0_alg(arg2, &alg);
+        break;
+    case ASN1_PKEY_CTRL_DEFAULT_MD_NID:
+        *(int *)arg2 = NID_sha3_256;
+        return 1;
+    case ASN1_PKEY_CTRL_SET1_TLS_KYBER_PK: {
+        Kyber *kyber = EVP_PKEY_get0_Kyber(pkey);
+        kyber->public_key = (unsigned char *) arg2;
+        kyber->public_key_size = (int) arg1;
+        break;
+                                           }
+
+    case ASN1_PKEY_CTRL_GET1_TLS_KYBER_PK: {
+        Kyber *kyber = EVP_PKEY_get0_Kyber(pkey);
+        *(unsigned char **)arg2 = kyber->public_key;
+        return kyber->public_key_size;
+                                           }
+
+    default:
+        return -2;
+
+    }
+
+    if (alg)
+        X509_ALGOR_set0(alg, OBJ_nid2obj(NID_kyber), V_ASN1_NULL, 0);
+
+    return 1;
+
+}
 
 static int old_kyber_priv_decode(EVP_PKEY *pkey,
                                const unsigned char **pder, int derlen)
@@ -214,6 +225,16 @@ static int kyber_pkey_check(const EVP_PKEY *pkey)
     return kyber_check_key_ex(pkey->pkey.kyber);
 }
 
+static int kyber_size(const EVP_PKEY *pkey)
+{
+    return Kyber_size(pkey->pkey.kyber);
+}
+
+static int kyber_bits(const EVP_PKEY *pkey)
+{
+    return Kyber_size(pkey->pkey.kyber) * 8;
+}
+
 const EVP_PKEY_ASN1_METHOD kyber_asn1_meth = {
      EVP_PKEY_KYBER,
      EVP_PKEY_KYBER,
@@ -231,13 +252,13 @@ const EVP_PKEY_ASN1_METHOD kyber_asn1_meth = {
      kyber_priv_encode,
      kyber_priv_print,
 
-     0,
-     0,
+     kyber_size,
+     kyber_bits,
      0,
 
      0, 0, 0, 0, 0, 0, 0,
      int_kyber_free,
-     0,
+     kyber_pkey_ctrl,
      old_kyber_priv_decode,
      old_kyber_priv_encode,
      0, 0, 0,

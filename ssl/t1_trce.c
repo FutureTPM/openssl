@@ -1040,6 +1040,10 @@ static int ssl_get_keyex(const char **pname, const SSL *ssl)
         *pname = "rsa";
         return SSL_kRSA;
     }
+    if (alg_k & SSL_kKYBER) {
+        *pname = "Kyber";
+        return SSL_kKYBER;
+    }
     if (alg_k & SSL_kDHE) {
         *pname = "DHE";
         return SSL_kDHE;
@@ -1091,6 +1095,11 @@ static int ssl_print_client_keyex(BIO *bio, int indent, const SSL *ssl,
     }
     switch (id) {
 
+    case SSL_kKYBER:
+        if (!ssl_print_hexbuf(bio, indent + 2, "shared key", 32, &msg, &msglen))
+            return 0;
+        break;
+
     case SSL_kRSA:
     case SSL_kRSAPSK:
         if (TLS1_get_version(ssl) == SSL3_VERSION) {
@@ -1134,6 +1143,11 @@ static int ssl_print_server_keyex(BIO *bio, int indent, const SSL *ssl,
             return 0;
     }
     switch (id) {
+    case SSL_kKYBER:
+        if (!ssl_print_hexbuf(bio, indent + 2, "shared key", 32, &msg, &msglen))
+            return 0;
+        break;
+
     case SSL_kRSA:
 
         if (!ssl_print_hexbuf(bio, indent + 2, "rsa_modulus", 2, &msg, &msglen))

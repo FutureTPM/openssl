@@ -128,6 +128,7 @@ static const ssl_cipher_table ssl_cipher_table_kx[] = {
     {SSL_kPSK,      NID_kx_psk},
     {SSL_kSRP,      NID_kx_srp},
     {SSL_kGOST,     NID_kx_gost},
+    {SSL_kKYBER,    NID_kx_kyber},
     {SSL_kANY,      NID_kx_any}
 };
 
@@ -213,6 +214,8 @@ static const SSL_CIPHER cipher_aliases[] = {
      * combines DHE_DSS and DHE_RSA)
      */
     {0, SSL_TXT_kRSA, NULL, 0, SSL_kRSA},
+
+    {0, SSL_TXT_kKYBER, NULL, 0, SSL_kKYBER},
 
     {0, SSL_TXT_kEDH, NULL, 0, SSL_kDHE},
     {0, SSL_TXT_kDHE, NULL, 0, SSL_kDHE},
@@ -396,6 +399,9 @@ int ssl_load_ciphers(void)
 #ifdef OPENSSL_NO_RSA
     disabled_mkey_mask |= SSL_kRSA | SSL_kRSAPSK;
     disabled_auth_mask |= SSL_aRSA;
+#endif
+#ifdef OPENSSL_NO_KYBER
+    disabled_mkey_mask |= SSL_kKYBER;
 #endif
 #ifdef OPENSSL_NO_DSA
     disabled_auth_mask |= SSL_aDSS;
@@ -1459,6 +1465,7 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(const SSL_METHOD *ssl_method,
      * server has both certificates, and is using the DEFAULT, or a client
      * preference).
      */
+    /* Prefer QR above all else */
     ssl_cipher_apply_rule(0, SSL_kECDHE, SSL_aECDSA, 0, 0, 0, 0, CIPHER_ADD,
                           -1, &head, &tail);
     ssl_cipher_apply_rule(0, SSL_kECDHE, 0, 0, 0, 0, 0, CIPHER_ADD, -1, &head,
@@ -1660,6 +1667,9 @@ char *SSL_CIPHER_description(const SSL_CIPHER *cipher, char *buf, int len)
     switch (alg_mkey) {
     case SSL_kRSA:
         kx = "RSA";
+        break;
+    case SSL_kKYBER:
+        kx = "KYBER";
         break;
     case SSL_kDHE:
         kx = "DH";

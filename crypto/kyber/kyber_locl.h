@@ -56,3 +56,4 @@ int kyber_encapsulate(const Kyber *kyber, uint8_t *ss, uint8_t **ct);
 int kyber_decapsulate(const Kyber *kyber, uint8_t *ss, const uint8_t *ct);
 size_t kyber_copy_priv(const Kyber *key, unsigned char **pbuf);
 size_t kyber_copy_pub(const Kyber *key, unsigned char **pbuf);
+int Kyber_size(const Kyber *r);

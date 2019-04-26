@@ -3317,7 +3317,7 @@ void ssl3_free(SSL *s)
 
     ssl3_cleanup_key_block(s);
 
-#if !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_DH)
+#if !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_DH) || !defined(OPENSSL_NO_KYBER)
     EVP_PKEY_free(s->s3->peer_tmp);
     s->s3->peer_tmp = NULL;
     EVP_PKEY_free(s->s3->tmp.pkey);
@@ -3351,7 +3351,7 @@ int ssl3_clear(SSL *s)
     OPENSSL_free(s->s3->tmp.peer_sigalgs);
     OPENSSL_free(s->s3->tmp.peer_cert_sigalgs);
 
-#if !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_DH)
+#if !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_DH) || !defined(OPENSSL_NO_KYBER)
     EVP_PKEY_free(s->s3->tmp.pkey);
     EVP_PKEY_free(s->s3->peer_tmp);
 #endif                          /* !OPENSSL_NO_EC */
@@ -3688,7 +3688,7 @@ long ssl3_ctrl(SSL *s, int cmd, long larg, void *parg)
         return 1;
 
     case SSL_CTRL_GET_PEER_TMP_KEY:
-#if !defined(OPENSSL_NO_DH) || !defined(OPENSSL_NO_EC)
+#if !defined(OPENSSL_NO_DH) || !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_KYBER)
         if (s->session == NULL || s->s3->peer_tmp == NULL) {
             return 0;
         } else {
@@ -3701,7 +3701,7 @@ long ssl3_ctrl(SSL *s, int cmd, long larg, void *parg)
 #endif
 
     case SSL_CTRL_GET_TMP_KEY:
-#if !defined(OPENSSL_NO_DH) || !defined(OPENSSL_NO_EC)
+#if !defined(OPENSSL_NO_DH) || !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_KYBER)
         if (s->session == NULL || s->s3->tmp.pkey == NULL) {
             return 0;
         } else {
@@ -4860,5 +4860,50 @@ EVP_PKEY *ssl_dh_to_pkey(DH *dh)
         return NULL;
     }
     return ret;
+}
+#endif
+
+#ifndef OPENSSL_NO_KYBER
+/* Generate a Kyber private key */
+EVP_PKEY *ssl_generate_pkey_kyber(SSL *s)
+{
+    EVP_PKEY_CTX *pctx = NULL;
+    EVP_PKEY *pkey = NULL;
+
+    pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_KYBER, NULL);
+    if (pctx == NULL) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL_GENERATE_PKEY_KYBER,
+                 ERR_R_MALLOC_FAILURE);
+        goto err;
+    }
+    if (EVP_PKEY_keygen_init(pctx) <= 0) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL_GENERATE_PKEY_KYBER,
+                 ERR_R_EVP_LIB);
+        goto err;
+    }
+    if (EVP_PKEY_keygen(pctx, &pkey) <= 0) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL_GENERATE_PKEY_KYBER,
+                 ERR_R_EVP_LIB);
+        EVP_PKEY_free(pkey);
+        pkey = NULL;
+    }
+
+ err:
+    EVP_PKEY_CTX_free(pctx);
+    return pkey;
+}
+
+/*
+ * Generate hollow Kyber PKEY
+ */
+EVP_PKEY *ssl_generate_kyber_wrapper(void)
+{
+    EVP_PKEY *pkey = NULL;
+
+    if ((pkey = EVP_PKEY_new()) == NULL) {
+        pkey = NULL;
+    }
+
+    return pkey;
 }
 #endif

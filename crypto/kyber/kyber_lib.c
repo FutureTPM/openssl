@@ -143,14 +143,12 @@ void *kyber_get_ex_data(const Kyber *r, int idx)
     return CRYPTO_get_ex_data(&r->ex_data, idx);
 }
 
-int kyber_set0_crt_params(Kyber *r, int *mode)
+int kyber_set0_crt_params(Kyber *r, int mode)
 {
-    if (r == NULL && mode == NULL)
+    if (r == NULL || (mode != 2 && mode != 3 && mode != 4))
         return 0;
 
-    if (mode != NULL) {
-        r->mode = *mode;
-    }
+    r->mode = mode;
 
     return 1;
 }
@@ -187,14 +185,13 @@ ENGINE *kyber_get0_engine(const Kyber *r)
     return r->engine;
 }
 
-int kyber_set0_key(Kyber *r, uint8_t *public_key, int *public_key_size)
+int kyber_set0_key(Kyber *r, uint8_t *public_key,
+        const int public_key_size)
 {
-    if ((r->public_key == NULL && public_key == NULL) || (public_key_size == NULL))
+    if (r->public_key == NULL && public_key == NULL)
         return 0;
 
-    if (public_key_size != NULL) {
-        r->public_key_size = *public_key_size;
-    }
+    r->public_key_size = public_key_size;
     if (public_key != NULL) {
         r->public_key = public_key;
     }
@@ -203,12 +200,12 @@ int kyber_set0_key(Kyber *r, uint8_t *public_key, int *public_key_size)
 }
 
 void kyber_get0_key(const Kyber *r,
-                  const uint8_t **public_key, const int **public_key_size)
+                  const uint8_t **public_key, int *public_key_size)
 {
     if (public_key != NULL)
         *public_key = r->public_key;
     if (public_key_size != NULL)
-        *public_key_size = &r->public_key_size;
+        *public_key_size = r->public_key_size;
 }
 
 int kyber_pkey_ctx_ctrl(EVP_PKEY_CTX *ctx, int optype, int cmd, int p1, void *p2)

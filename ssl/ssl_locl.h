@@ -22,6 +22,7 @@
 # include <openssl/comp.h>
 # include <openssl/bio.h>
 # include <openssl/rsa.h>
+# include <openssl/kyber.h>
 # include <openssl/dsa.h>
 # include <openssl/err.h>
 # include <openssl/ssl.h>
@@ -176,6 +177,8 @@
 # define SSL_kRSAPSK             0x00000040U
 # define SSL_kECDHEPSK           0x00000080U
 # define SSL_kDHEPSK             0x00000100U
+
+#define SSL_kKYBER               0x00000200U
 
 /* all PSK */
 
@@ -383,14 +386,16 @@
 # define SSL_PKEY_GOST12_512     6
 # define SSL_PKEY_ED25519        7
 # define SSL_PKEY_ED448          8
-# define SSL_PKEY_NUM            9
+# define SSL_PKEY_KYBER          9
+# define SSL_PKEY_NUM            10
 
 /*-
- * SSL_kRSA <- RSA_ENC
- * SSL_kDH  <- DH_ENC & (RSA_ENC | RSA_SIGN | DSA_SIGN)
- * SSL_kDHE <- RSA_ENC | RSA_SIGN | DSA_SIGN
- * SSL_aRSA <- RSA_ENC | RSA_SIGN
- * SSL_aDSS <- DSA_SIGN
+ * SSL_kRSA   <- RSA_ENC
+ * SSL_kKYBER <- KYBER_ENC
+ * SSL_kDH    <- DH_ENC & (RSA_ENC | RSA_SIGN | DSA_SIGN)
+ * SSL_kDHE   <- RSA_ENC | RSA_SIGN | DSA_SIGN
+ * SSL_aRSA   <- RSA_ENC | RSA_SIGN
+ * SSL_aDSS   <- DSA_SIGN
  */
 
 /*-
@@ -1569,8 +1574,8 @@ typedef struct ssl3_state_st {
         int message_type;
         /* used to hold the new cipher we are going to use */
         const SSL_CIPHER *new_cipher;
-# if !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_DH)
-        EVP_PKEY *pkey;         /* holds short lived DH/ECDH key */
+# if !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_DH) || !defined(OPENSSL_NO_KYBER)
+        EVP_PKEY *pkey;         /* holds short lived DH/ECDH/Kyber key */
 # endif
         /* used for certificate requests */
         int cert_req;
@@ -1683,7 +1688,7 @@ typedef struct ssl3_state_st {
 # endif                         /* !OPENSSL_NO_EC */
 
     /* For clients: peer temporary key */
-# if !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_DH)
+# if !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_DH) || !defined(OPENSSL_NO_KYBER)
     /* The group_id for the DH/ECDH key */
     uint16_t group_id;
     EVP_PKEY *peer_tmp;
@@ -2521,6 +2526,11 @@ __owur int tls1_check_ec_tmp_key(SSL *s, unsigned long id);
 __owur EVP_PKEY *ssl_generate_pkey_group(SSL *s, uint16_t id);
 __owur EVP_PKEY *ssl_generate_param_group(uint16_t id);
 #  endif                        /* OPENSSL_NO_EC */
+
+#  ifndef OPENSSL_NO_KYBER
+__owur EVP_PKEY *ssl_generate_pkey_kyber(SSL *s);
+__owur EVP_PKEY *ssl_generate_kyber_wrapper(void);
+#  endif                        /* OPENSSL_NO_KYBER */
 
 __owur int tls_curve_allowed(SSL *s, uint16_t curve, int op);
 void tls1_get_supported_groups(SSL *s, const uint16_t **pgroups,

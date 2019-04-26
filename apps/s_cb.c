@@ -421,6 +421,10 @@ int ssl_print_tmp_key(BIO *out, SSL *s)
         }
     break;
 #endif
+    case EVP_PKEY_KYBER:
+        BIO_printf(out, "Kyber, %d bits (Public Key %d bits)\n",
+                32 * 8, EVP_PKEY_bits(key));
+        break;
     default:
         BIO_printf(out, "%s, %d bits\n", OBJ_nid2sn(EVP_PKEY_id(key)),
                    EVP_PKEY_bits(key));

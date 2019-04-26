@@ -46,6 +46,7 @@ my $no_dtls = alldisabled(available_protocols("dtls"));
 my $no_npn = disabled("nextprotoneg");
 my $no_ct = disabled("ct");
 my $no_ec = disabled("ec");
+my $no_kyber = disabled("kyber");
 my $no_dh = disabled("dh");
 my $no_dsa = disabled("dsa");
 my $no_ec2m = disabled("ec2m");

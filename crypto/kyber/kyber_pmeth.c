@@ -25,8 +25,9 @@ static int pkey_kyber_init(EVP_PKEY_CTX *ctx)
 
     if (rctx == NULL)
         return 0;
-    rctx->mode = 0;
+    rctx->mode = 2; // Default mode
     rctx->public_key_size = 0;
+    rctx->public_key = NULL;
 
     ctx->data = rctx;
 

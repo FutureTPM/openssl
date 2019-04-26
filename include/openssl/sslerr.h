@@ -445,6 +445,10 @@ int ERR_load_SSL_strings(void);
 # define SSL_F_WPACKET_INTERN_INIT_LEN                    633
 # define SSL_F_WPACKET_START_SUB_PACKET_LEN__             634
 # define SSL_F_WRITE_STATE_MACHINE                        586
+# define SSL_F_TLS_CONSTRUCT_CKE_KYBER                    639
+# define SSL_F_TLS_PROCESS_SKE_KYBER                      640
+# define SSL_F_TLS_PROCESS_CKE_KYBER                      641
+# define SSL_F_SSL_GENERATE_PKEY_KYBER                    642
 
 /*
  * SSL reason codes.
@@ -764,5 +768,10 @@ int ERR_load_SSL_strings(void);
 # define SSL_R_WRONG_VERSION_NUMBER                       267
 # define SSL_R_X509_LIB                                   268
 # define SSL_R_X509_VERIFICATION_SETUP_PROBLEMS           269
+# define SSL_R_NO_KYBER_CERTIFICATE_SENT_BY_PEER          1117
+# define SSL_R_MISSING_KYBER_CERTIFICATE                  1118
+# define SSL_R_MISSING_TMP_KYBER_KEY                      1119
+# define SSL_R_UNABLE_TO_GENERATE_KYBER_WRAPPER           1120
+# define SSL_R_BAD_KYBER_KEY                              1121
 
 #endif

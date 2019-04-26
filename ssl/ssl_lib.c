@@ -3235,7 +3235,7 @@ void ssl_set_masks(SSL *s)
 {
     CERT *c = s->cert;
     uint32_t *pvalid = s->s3->tmp.valid_flags;
-    int rsa_enc, rsa_sign, dh_tmp, dsa_sign;
+    int rsa_enc, rsa_sign, dh_tmp, dsa_sign, kyber_enc;
     unsigned long mask_k, mask_a;
 #ifndef OPENSSL_NO_EC
     int have_ecc_cert, ecdsa_ok;
@@ -3249,6 +3249,7 @@ void ssl_set_masks(SSL *s)
     dh_tmp = 0;
 #endif
 
+    kyber_enc = pvalid[SSL_PKEY_KYBER] & CERT_PKEY_VALID;
     rsa_enc = pvalid[SSL_PKEY_RSA] & CERT_PKEY_VALID;
     rsa_sign = pvalid[SSL_PKEY_RSA] & CERT_PKEY_VALID;
     dsa_sign = pvalid[SSL_PKEY_DSA_SIGN] & CERT_PKEY_VALID;
@@ -3259,8 +3260,8 @@ void ssl_set_masks(SSL *s)
     mask_a = 0;
 
 #ifdef CIPHER_DEBUG
-    fprintf(stderr, "dht=%d re=%d rs=%d ds=%d\n",
-            dh_tmp, rsa_enc, rsa_sign, dsa_sign);
+    fprintf(stderr, "dht=%d re=%d rs=%d ds=%d kyber=%d\n",
+            dh_tmp, rsa_enc, rsa_sign, dsa_sign, kyber_enc);
 #endif
 
 #ifndef OPENSSL_NO_GOST
@@ -3277,6 +3278,9 @@ void ssl_set_masks(SSL *s)
         mask_a |= SSL_aGOST01;
     }
 #endif
+
+    if (kyber_enc)
+        mask_k |= SSL_kKYBER;
 
     if (rsa_enc)
         mask_k |= SSL_kRSA;

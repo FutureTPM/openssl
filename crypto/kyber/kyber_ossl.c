@@ -48,58 +48,30 @@ static int kyber_ossl_public_encrypt(int flen, const uint8_t *from,
                                   uint8_t *to, Kyber *kyber)
 {
     uint8_t ss[32];
-    int r = -1;
     uint8_t *ct = NULL;
-    int len, tmplen;
 
     // @1: ct is allocated inside kyber_encapsulate; don't forget to free it
-    r = kyber_encapsulate(kyber, ss, &ct);
-    if (r == -1 || ct == NULL)
-        return r;
+    int ret = kyber_encapsulate(kyber, ss, &ct);
+    if (ret < 0 || ct == NULL)
+        return ret;
 
-    memmove(to, ct, r);
+    // Copy cipher text and shared secret to out
+    memmove(to, ss, 32);
+    memmove(to + 32, ct, ret);
     OPENSSL_free(ct); // free @1
 
-    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-    if (ctx == NULL) {
-        return -1;
-    }
-
-    EVP_EncryptInit_ex(ctx, EVP_aes_256_cfb(), NULL, ss, NULL);
-    EVP_EncryptUpdate(ctx, to + r, &len, from, flen);
-    EVP_EncryptFinal_ex(ctx, to + r + len, &tmplen);
-    EVP_CIPHER_CTX_free(ctx);
-
-    r += tmplen + len;
-
-    return r;
+    return 32 + ret;
 }
 
 static int kyber_ossl_private_decrypt(int flen, const unsigned char *from,
                                    unsigned char *to, Kyber *kyber)
 {
-    uint8_t ss[32];
     int r = -1;
-    int len, tmplen;
-    KyberParams params = generate_kyber_params(kyber->mode);
 
-    if (kyber_decapsulate(kyber, ss, from) != 1)
+    if (!kyber_decapsulate(kyber, to, from))
         return r;
 
-    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-    if (ctx == NULL) {
-        return -1;
-    }
-
-    EVP_DecryptInit_ex(ctx, EVP_aes_256_cfb(), NULL, ss, NULL);
-    EVP_DecryptUpdate(ctx, to, &len, from + params.ciphertextbytes,
-            flen - params.ciphertextbytes);
-    EVP_DecryptFinal_ex(ctx, to + len, &tmplen);
-    EVP_CIPHER_CTX_free(ctx);
-
-    r = len + tmplen;
-
-    return r;
+    return 32;
 }
 
 static int kyber_ossl_init(Kyber *kyber)

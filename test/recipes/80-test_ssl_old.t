@@ -20,10 +20,10 @@ setup("test_ssl");
 
 $ENV{CTLOG_FILE} = srctop_file("test", "ct", "log_list.conf");
 
-my ($no_rsa, $no_dsa, $no_dh, $no_ec, $no_psk,
+my ($no_rsa, $no_dsa, $no_dh, $no_ec, $no_kyber, $no_psk,
     $no_ssl3, $no_tls1, $no_tls1_1, $no_tls1_2, $no_tls1_3,
     $no_dtls, $no_dtls1, $no_dtls1_2, $no_ct) =
-    anydisabled qw/rsa dsa dh ec psk
+    anydisabled qw/rsa dsa dh ec kyber psk
                    ssl3 tls1 tls1_1 tls1_2 tls1_3
                    dtls dtls1 dtls1_2 ct/;
 my $no_anytls = alldisabled(available_protocols("tls"));

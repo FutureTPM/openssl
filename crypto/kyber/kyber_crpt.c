@@ -21,3 +21,8 @@ int kyber_flags(const Kyber *r)
     return r == NULL ? 0 : r->meth->flags;
 }
 
+int Kyber_size(const Kyber *r)
+{
+    return r->public_key_size;
+}
+

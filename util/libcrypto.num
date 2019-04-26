@@ -4674,3 +4674,5 @@ PEM_write_KyberPublicKey                4625	1_1_0	EXIST::FUNCTION:KYBER,STDIO
 PEM_write_bio_KYBER_PUBKEY              4626	1_1_0	EXIST::FUNCTION:KYBER
 PEM_write_bio_KyberPrivateKey           4627	1_1_0	EXIST::FUNCTION:KYBER
 PEM_write_bio_KyberPublicKey            4628	1_1_0	EXIST::FUNCTION:KYBER
+EVP_PKEY_get1_tls_kyber_pk              4629	1_1_0	EXIST::FUNCTION:
+EVP_PKEY_set1_tls_kyber_pk              4629	1_1_0	EXIST::FUNCTION:

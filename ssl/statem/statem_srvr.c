@@ -314,9 +314,9 @@ static int send_server_key_exchange(SSL *s)
      * only send a ServerKeyExchange if DH or fortezza but we have a
      * sign only certificate PSK: may send PSK identity hints For
      * ECC ciphersuites, we send a serverKeyExchange message only if
-     * the cipher suite is either ECDH-anon or ECDHE. In other cases,
-     * the server certificate contains the server's public key for
-     * key exchange.
+     * the cipher suite is either ECDH-anon, ECDHE or Kyber. In other
+     * cases, the server certificate contains the server's public key
+     * for key exchange.
      */
     if (alg_k & (SSL_kDHE | SSL_kECDHE)
         /*
@@ -333,6 +333,10 @@ static int send_server_key_exchange(SSL *s)
 #ifndef OPENSSL_NO_SRP
         /* SRP: send ServerKeyExchange */
         || (alg_k & SSL_kSRP)
+#endif
+#ifndef OPENSSL_NO_KYBER
+        /* Kyber: send ServerKeyExchange */
+        || (alg_k & SSL_kKYBER)
 #endif
         ) {
         return 1;
@@ -2477,6 +2481,10 @@ int tls_construct_server_key_exchange(SSL *s, WPACKET *pkt)
     size_t encodedlen = 0;
     int curve_id = 0;
 #endif
+#ifndef OPENSSL_NO_KYBER
+    const unsigned char *public_key = NULL;
+    int public_key_size = 0;
+#endif
     const SIGALG_LOOKUP *lu = s->s3->tmp.sigalg;
     int i;
     unsigned long type;
@@ -2623,6 +2631,48 @@ int tls_construct_server_key_exchange(SSL *s, WPACKET *pkt)
         r[3] = NULL;
     } else
 #endif                          /* !OPENSSL_NO_EC */
+#ifndef OPENSSL_NO_KYBER
+    if (type & SSL_kKYBER) {
+        if (s->s3->tmp.pkey != NULL) {
+            SSLfatal(s, SSL_AD_INTERNAL_ERROR,
+                     SSL_F_TLS_CONSTRUCT_SERVER_KEY_EXCHANGE,
+                     ERR_R_INTERNAL_ERROR);
+            goto err;
+        }
+
+        pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_KYBER, NULL);
+        if (pctx == NULL) {
+            SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL_GENERATE_PKEY_GROUP,
+                     ERR_R_MALLOC_FAILURE);
+            goto err;
+        }
+        if (EVP_PKEY_keygen_init(pctx) <= 0) {
+            SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL_GENERATE_PKEY_GROUP,
+                     ERR_R_EVP_LIB);
+            goto err;
+        }
+        /* Generate a new ephemeral key */
+        if (EVP_PKEY_keygen(pctx, &s->s3->tmp.pkey) <= 0) {
+            /* SSLfatal() already called */
+            goto err;
+        }
+
+        Kyber *kyber = EVP_PKEY_get0_Kyber(s->s3->tmp.pkey);
+        kyber_get0_key(kyber, &public_key, &public_key_size);
+
+        EVP_PKEY_CTX_free(pctx);
+        pctx = NULL;
+
+        /*
+         * We'll generate the serverKeyExchange message explicitly so we
+         * can set these to NULLs
+         */
+        r[0] = NULL;
+        r[1] = NULL;
+        r[2] = NULL;
+        r[3] = NULL;
+    } else
+#endif                          /* !OPENSSL_NO_KYBER */
 #ifndef OPENSSL_NO_SRP
     if (type & SSL_kSRP) {
         if ((s->srp_ctx.N == NULL) ||
@@ -2746,6 +2796,21 @@ int tls_construct_server_key_exchange(SSL *s, WPACKET *pkt)
     }
 #endif
 
+#ifndef OPENSSL_NO_KYBER
+    if (type & SSL_kKYBER) {
+        /*
+         * Send back to client the remaining ciphertexts to generate the final
+         * shared key.
+         */
+        if (!WPACKET_sub_memcpy_u16(pkt, public_key, public_key_size)) {
+            SSLfatal(s, SSL_AD_INTERNAL_ERROR,
+                     SSL_F_TLS_CONSTRUCT_SERVER_KEY_EXCHANGE,
+                     ERR_R_INTERNAL_ERROR);
+            goto err;
+        }
+    }
+#endif
+
     /* not anonymous */
     if (lu != NULL) {
         EVP_PKEY *pkey = s->s3->tmp.cert->privatekey;
@@ -2824,6 +2889,9 @@ int tls_construct_server_key_exchange(SSL *s, WPACKET *pkt)
 #endif
 #ifndef OPENSSL_NO_EC
     OPENSSL_free(encodedPoint);
+#endif
+#ifndef OPENSSL_NO_KYBER
+    EVP_PKEY_CTX_free(pctx);
 #endif
     EVP_MD_CTX_free(md_ctx);
     return 0;
@@ -3134,6 +3202,74 @@ static int tls_process_cke_rsa(SSL *s, PACKET *pkt)
 #else
     /* Should never happen */
     SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PROCESS_CKE_RSA,
+             ERR_R_INTERNAL_ERROR);
+    return 0;
+#endif
+}
+
+static int tls_process_cke_kyber(SSL *s, PACKET *pkt)
+{
+#ifndef OPENSSL_NO_KYBER
+    EVP_PKEY_CTX *ekey_ctx;
+    EVP_PKEY *ekey = s->s3->tmp.pkey;
+    unsigned char premaster_secret[32];
+    const unsigned char *ciphertext;
+    size_t outlen = 32, ciphertext_size;
+    int ret = 0;
+    PACKET encdata;
+
+    /*
+     * Ephemeral private key
+     */
+    if (ekey == NULL) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PROCESS_CKE_KYBER,
+                 SSL_R_MISSING_TMP_KYBER_KEY);
+        goto err;
+    }
+    ekey_ctx = EVP_PKEY_CTX_new(ekey, NULL);
+    if (ekey_ctx == NULL) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PROCESS_CKE_KYBER,
+                 ERR_R_MALLOC_FAILURE);
+        return 0;
+    }
+
+    /* Get ciphertexts sent from client */
+    if (!PACKET_as_length_prefixed_2(pkt, &encdata)) {
+        SSLfatal(s, SSL_AD_DECODE_ERROR, SSL_F_TLS_PROCESS_CKE_KYBER,
+                 SSL_R_DECRYPTION_FAILED);
+        goto err;
+    }
+
+    ciphertext_size = PACKET_remaining(&encdata);
+    ciphertext = PACKET_data(&encdata);
+
+    /*
+     * Get first key by decapsulating the first cipher text
+     * sent by the client
+     */
+    if (EVP_PKEY_decrypt(ekey_ctx, premaster_secret, &outlen,
+                ciphertext, ciphertext_size) <= 0) {
+        SSLfatal(s, SSL_AD_DECODE_ERROR, SSL_F_TLS_PROCESS_CKE_KYBER,
+                 SSL_R_DECRYPTION_FAILED);
+        goto err;
+    }
+
+    /* Generate master secret */
+    if (!ssl_generate_master_secret(s, premaster_secret,
+                                    sizeof(premaster_secret), 0)) {
+        /* SSLfatal() already called */
+        goto err;
+    }
+
+    ret = 1;
+    EVP_PKEY_free(s->s3->tmp.pkey);
+    s->s3->tmp.pkey = NULL;
+ err:
+
+    return ret;
+#else
+    /* Should never happen */
+    SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PROCESS_CKE_KYBER,
              ERR_R_INTERNAL_ERROR);
     return 0;
 #endif
@@ -3464,6 +3600,11 @@ MSG_PROCESS_RETURN tls_process_client_key_exchange(SSL *s, PACKET *pkt)
         }
     } else if (alg_k & (SSL_kRSA | SSL_kRSAPSK)) {
         if (!tls_process_cke_rsa(s, pkt)) {
+            /* SSLfatal() already called */
+            goto err;
+        }
+    } else if (alg_k & SSL_kKYBER) {
+        if (!tls_process_cke_kyber(s, pkt)) {
             /* SSLfatal() already called */
             goto err;
         }

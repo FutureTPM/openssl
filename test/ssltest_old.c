@@ -52,6 +52,9 @@
 #ifndef OPENSSL_NO_DSA
 # include <openssl/dsa.h>
 #endif
+#ifndef OPENSSL_NO_KYBER
+# include <openssl/kyber.h>
+#endif
 #ifndef OPENSSL_NO_DH
 # include <openssl/dh.h>
 #endif
@@ -742,6 +745,9 @@ static void print_key_details(BIO *out, EVP_PKEY *key)
         switch (keyid) {
         case EVP_PKEY_RSA:
             algname = "RSA";
+            break;
+        case EVP_PKEY_KYBER:
+            algname = "Kyber";
             break;
         case EVP_PKEY_DSA:
             algname = "DSA";
