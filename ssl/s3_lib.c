@@ -117,6 +117,7 @@ static SSL_CIPHER tls13_ciphers[] = {
 /*
  * The list of available ciphers, mostly organized into the following
  * groups:
+ *      Quantum Resistant
  *      Always there
  *      EC
  *      PSK
@@ -1205,6 +1206,56 @@ static SSL_CIPHER ssl3_ciphers[] = {
      256,
      256,
      },
+#if !defined(OPENSSL_NO_KYBER)
+    {
+     1,
+     TLS1_TXT_KYBER_RSA_WITH_AES_256_SHA384,
+     TLS1_RFC_KYBER_RSA_WITH_AES_256_SHA384,
+     TLS1_CK_KYBER_RSA_WITH_AES_256_SHA384,
+     SSL_kKYBER,
+     SSL_aRSA,
+     SSL_AES256,
+     SSL_SHA384,
+     TLS1_2_VERSION, TLS1_2_VERSION,
+     DTLS1_2_VERSION, DTLS1_2_VERSION,
+     SSL_HIGH | SSL_FIPS,
+     SSL_HANDSHAKE_MAC_SHA384 | TLS1_PRF_SHA384,
+     256,
+     256,
+     },
+    {
+     1,
+     TLS1_TXT_KYBER_RSA_WITH_AES_128_GCM_SHA256,
+     TLS1_RFC_KYBER_RSA_WITH_AES_128_GCM_SHA256,
+     TLS1_CK_KYBER_RSA_WITH_AES_128_GCM_SHA256,
+     SSL_kKYBER,
+     SSL_aRSA,
+     SSL_AES128GCM,
+     SSL_AEAD,
+     TLS1_2_VERSION, TLS1_2_VERSION,
+     DTLS1_2_VERSION, DTLS1_2_VERSION,
+     SSL_HIGH | SSL_FIPS,
+     SSL_HANDSHAKE_MAC_SHA256 | TLS1_PRF_SHA256,
+     128,
+     128,
+     },
+    {
+     1,
+     TLS1_TXT_KYBER_RSA_WITH_AES_256_GCM_SHA384,
+     TLS1_RFC_KYBER_RSA_WITH_AES_256_GCM_SHA384,
+     TLS1_CK_KYBER_RSA_WITH_AES_256_GCM_SHA384,
+     SSL_kKYBER,
+     SSL_aRSA,
+     SSL_AES256GCM,
+     SSL_AEAD,
+     TLS1_2_VERSION, TLS1_2_VERSION,
+     DTLS1_2_VERSION, DTLS1_2_VERSION,
+     SSL_HIGH | SSL_FIPS,
+     SSL_HANDSHAKE_MAC_SHA384 | TLS1_PRF_SHA384,
+     256,
+     256,
+     },
+#endif
     {
      1,
      TLS1_TXT_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
@@ -3707,12 +3758,21 @@ long ssl3_ctrl(SSL *s, int cmd, long larg, void *parg)
 
     case SSL_CTRL_GET_TMP_KEY:
 #if !defined(OPENSSL_NO_DH) || !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_KYBER)
-        if (s->session == NULL || s->s3->tmp.pkey == NULL) {
+        if (s->session == NULL
+                || (s->s3->tmp.pkey == NULL && s->s3->tmp.kyber_pkey == NULL)) {
             return 0;
         } else {
-            EVP_PKEY_up_ref(s->s3->tmp.pkey);
-            *(EVP_PKEY **)parg = s->s3->tmp.pkey;
-            return 1;
+            if (s->s3->tmp.pkey != NULL) {
+                EVP_PKEY_up_ref(s->s3->tmp.pkey);
+                *(EVP_PKEY **)parg = s->s3->tmp.pkey;
+                return 1;
+            }
+
+            if (s->s3->tmp.kyber_pkey != NULL) {
+                EVP_PKEY_up_ref(s->s3->tmp.kyber_pkey);
+                *(EVP_PKEY **)parg = s->s3->tmp.kyber_pkey;
+                return 1;
+            }
         }
 #else
         return 0;

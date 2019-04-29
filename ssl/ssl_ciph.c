@@ -1458,6 +1458,12 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(const SSL_METHOD *ssl_method,
 
     /* Now arrange all ciphers by preference. */
 
+    /* Prefer Quantum Resistant key exchange above all else */
+    ssl_cipher_apply_rule(0, SSL_kKYBER, 0, 0, 0, 0, 0, CIPHER_ADD, -1, &head,
+                          &tail);
+    ssl_cipher_apply_rule(0, SSL_kKYBER, 0, 0, 0, 0, 0, CIPHER_DEL, -1, &head,
+                          &tail);
+
     /*
      * Everything else being equal, prefer ephemeral ECDH over other key
      * exchange mechanisms.
@@ -1465,7 +1471,6 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(const SSL_METHOD *ssl_method,
      * server has both certificates, and is using the DEFAULT, or a client
      * preference).
      */
-    /* Prefer QR above all else */
     ssl_cipher_apply_rule(0, SSL_kECDHE, SSL_aECDSA, 0, 0, 0, 0, CIPHER_ADD,
                           -1, &head, &tail);
     ssl_cipher_apply_rule(0, SSL_kECDHE, 0, 0, 0, 0, 0, CIPHER_ADD, -1, &head,
@@ -1529,7 +1534,7 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(const SSL_METHOD *ssl_method,
 
     /*
      * Irrespective of strength, enforce the following order:
-     * (EC)DHE + AEAD > (EC)DHE > rest of AEAD > rest.
+     * Kyber > (EC)DHE + AEAD > (EC)DHE > rest of AEAD > rest.
      * Within each group, ciphers remain sorted by strength and previous
      * preference, i.e.,
      * 1) ECDHE > DHE
@@ -1545,6 +1550,8 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(const SSL_METHOD *ssl_method,
     ssl_cipher_apply_rule(0, SSL_kDHE | SSL_kECDHE, 0, 0, 0, 0, 0,
                           CIPHER_BUMP, -1, &head, &tail);
     ssl_cipher_apply_rule(0, SSL_kDHE | SSL_kECDHE, 0, 0, SSL_AEAD, 0, 0,
+                          CIPHER_BUMP, -1, &head, &tail);
+    ssl_cipher_apply_rule(0, SSL_kKYBER, 0, 0, 0, 0, 0,
                           CIPHER_BUMP, -1, &head, &tail);
 
     /* Now disable everything (maintaining the ordering!) */
