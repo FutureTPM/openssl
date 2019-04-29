@@ -2802,7 +2802,8 @@ int tls_construct_server_key_exchange(SSL *s, WPACKET *pkt)
          * Send back to client the remaining ciphertexts to generate the final
          * shared key.
          */
-        if (!WPACKET_sub_memcpy_u16(pkt, public_key, public_key_size)) {
+        if (!WPACKET_put_bytes_u16(pkt, KYBER_KEX_CODE)
+                || !WPACKET_sub_memcpy_u16(pkt, public_key, public_key_size)) {
             SSLfatal(s, SSL_AD_INTERNAL_ERROR,
                      SSL_F_TLS_CONSTRUCT_SERVER_KEY_EXCHANGE,
                      ERR_R_INTERNAL_ERROR);
@@ -3247,6 +3248,11 @@ static int tls_process_cke_kyber(SSL *s, PACKET *pkt)
      * Get first key by decapsulating the first cipher text
      * sent by the client
      */
+    if (EVP_PKEY_decrypt_init(ekey_ctx) <= 0) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_STOC_KEY_SHARE,
+                 SSL_R_LIBRARY_BUG);
+        return EXT_RETURN_FAIL;
+    }
     if (EVP_PKEY_decrypt(ekey_ctx, premaster_secret, &outlen,
                 ciphertext, ciphertext_size) <= 0) {
         SSLfatal(s, SSL_AD_DECODE_ERROR, SSL_F_TLS_PROCESS_CKE_KYBER,

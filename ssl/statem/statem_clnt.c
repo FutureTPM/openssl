@@ -66,7 +66,7 @@ static int key_exchange_expected(SSL *s)
      * Can't skip server key exchange if this is an ephemeral
      * ciphersuite or for SRP
      */
-    if (alg_k & (SSL_kDHE | SSL_kECDHE | SSL_kDHEPSK | SSL_kECDHEPSK
+    if (alg_k & (SSL_kKYBER | SSL_kDHE | SSL_kECDHE | SSL_kDHEPSK | SSL_kECDHEPSK
                  | SSL_kSRP)) {
         return 1;
     }
@@ -2260,49 +2260,57 @@ static int tls_process_ske_ecdhe(SSL *s, PACKET *pkt, EVP_PKEY **pkey)
 static int tls_process_ske_kyber(SSL *s, PACKET *pkt, EVP_PKEY **pkey)
 {
 #ifndef OPENSSL_NO_KYBER
-    PACKET public_key, ciphertext_2;
-    EVP_PKEY *peer_tmp = NULL;
+    PACKET public_key;
     Kyber *kyber = NULL;
-    unsigned char *public_key_buffer = NULL;
+    unsigned int key_type = 0;
 
     /*
      * Extract cipher text and public key sent by the server.
      */
-    if (!PACKET_get_length_prefixed_2(pkt, &public_key)
-            || !PACKET_get_length_prefixed_2(pkt, &ciphertext_2)) {
+    if (!PACKET_get_net_2(pkt, &key_type)
+            || !PACKET_get_length_prefixed_2(pkt, &public_key)) {
         SSLfatal(s, SSL_AD_DECODE_ERROR, SSL_F_TLS_PROCESS_SKE_KYBER,
                  ERR_R_INTERNAL_ERROR);
+        return 0;
+    }
+
+    if (key_type != KYBER_KEX_CODE) {
+        SSLfatal(s, SSL_AD_DECODE_ERROR, SSL_F_TLS_PROCESS_SKE_KYBER,
+                 SSL_R_BAD_KYBER_KEY);
         return 0;
     }
 
     /*
      * Copy ephemeral key to local variable
      */
-    peer_tmp = EVP_PKEY_new();
-    kyber = kyber_new();
-
-    if (peer_tmp == NULL || kyber == NULL) {
-        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PROCESS_SKE_KYBER,
-                 ERR_R_MALLOC_FAILURE);
+    if ((s->s3->peer_tmp = ssl_generate_kyber_wrapper()) == NULL) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PARSE_CTOS_KEY_SHARE,
+               SSL_R_UNABLE_TO_GENERATE_KYBER_WRAPPER);
         return 0;
     }
 
-    public_key_buffer = (uint8_t *) PACKET_data(&public_key);
-
-    if (!kyber_set0_key(kyber, public_key_buffer,
-            (int)PACKET_remaining(&public_key))) {
-        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PROCESS_SKE_KYBER,
-                 ERR_R_KYBER_LIB);
+    if ((kyber = kyber_new()) == NULL) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PARSE_CTOS_KEY_SHARE,
+                 ERR_R_INTERNAL_ERROR);
+        return 0;
+    }
+    if (!kyber_set0_key(kyber,
+                (uint8_t *)PACKET_data(&public_key), PACKET_remaining(&public_key))) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PARSE_CTOS_KEY_SHARE,
+                 ERR_R_INTERNAL_ERROR);
+        return 0;
+    }
+    if (!kyber_set0_crt_params(kyber, 2)) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PARSE_CTOS_KEY_SHARE,
+                 ERR_R_INTERNAL_ERROR);
         return 0;
     }
 
-    if (EVP_PKEY_assign_Kyber(peer_tmp, kyber) == 0) {
-        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PROCESS_SKE_KYBER,
-                 ERR_R_EVP_LIB);
+    if (!EVP_PKEY_set1_Kyber(s->s3->peer_tmp, kyber)) {
+        SSLfatal(s, SSL_AD_ILLEGAL_PARAMETER,
+                 SSL_F_TLS_PARSE_CTOS_KEY_SHARE, SSL_R_BAD_KYBER_KEY);
         return 0;
     }
-
-    s->s3->peer_tmp = peer_tmp;
 
     if (s->s3->tmp.new_cipher->algorithm_auth & SSL_aECDSA)
         *pkey = X509_get0_pubkey(s->session->peer);
@@ -3205,7 +3213,8 @@ static int tls_construct_cke_kyber(SSL *s, WPACKET *pkt)
      * process is complete, thus I will allocate a buffer larger than the
      * most secure mode.
      */
-    if ((msg = OPENSSL_malloc(4096)) == NULL) {
+    msglen = 4096;
+    if ((msg = OPENSSL_malloc(msglen)) == NULL) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_CKE_KYBER,
                  ERR_R_MALLOC_FAILURE);
         return 0;
@@ -3219,7 +3228,7 @@ static int tls_construct_cke_kyber(SSL *s, WPACKET *pkt)
     }
 
     /* Create ciphertext buffers to be sent to the server */
-    if ((ciphertext = OPENSSL_malloc(4096)) == NULL) {
+    if ((ciphertext = OPENSSL_malloc(msglen)) == NULL) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_CKE_KYBER,
                  ERR_R_MALLOC_FAILURE);
         goto err;
@@ -3235,7 +3244,11 @@ static int tls_construct_cke_kyber(SSL *s, WPACKET *pkt)
      * this works first.
      */
     /* TODO */
-    /* Generate 1st shared key using the ephemeral public key */
+    if (EVP_PKEY_encrypt_init(p_eph_ctx) <= 0) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_STOC_KEY_SHARE,
+                 SSL_R_LIBRARY_BUG);
+        goto err;
+    }
     if (EVP_PKEY_encrypt(p_eph_ctx, msg, &msglen, NULL, 0) <= 0) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_CKE_KYBER,
                  SSL_R_LIBRARY_BUG);
