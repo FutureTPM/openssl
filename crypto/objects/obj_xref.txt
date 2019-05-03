@@ -66,3 +66,4 @@ dhSinglePass_cofactorDH_sha384kdf_scheme	sha384	dh_cofactor_kdf
 dhSinglePass_cofactorDH_sha512kdf_scheme	sha512	dh_cofactor_kdf
 
 kyber undef kyber
+dilithium undef dilithium

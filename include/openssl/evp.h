@@ -27,20 +27,23 @@
 
 # include <openssl/objects.h>
 
-# define EVP_PK_RSA      0x0001
-# define EVP_PK_DSA      0x0002
-# define EVP_PK_DH       0x0004
-# define EVP_PK_EC       0x0008
-# define EVP_PKT_SIGN    0x0010
-# define EVP_PKT_ENC     0x0020
-# define EVP_PKT_EXCH    0x0040
-# define EVP_PKS_RSA     0x0100
-# define EVP_PKS_DSA     0x0200
-# define EVP_PKS_EC      0x0400
-# define EVP_PK_KYBER    0x0800
+# define EVP_PK_RSA        0x0001
+# define EVP_PK_DSA        0x0002
+# define EVP_PK_DH         0x0004
+# define EVP_PK_EC         0x0008
+# define EVP_PKT_SIGN      0x0010
+# define EVP_PKT_ENC       0x0020
+# define EVP_PKT_EXCH      0x0040
+# define EVP_PKS_RSA       0x0100
+# define EVP_PKS_DSA       0x0200
+# define EVP_PKS_EC        0x0400
+# define EVP_PK_KYBER      0x0800
+# define EVP_PK_DILITHIUM  0x1000
+# define EVP_PKS_DILITHIUM 0x2000
 
 # define EVP_PKEY_NONE   NID_undef
 # define EVP_PKEY_KYBER  NID_kyber
+# define EVP_PKEY_DILITHIUM  NID_dilithium
 # define EVP_PKEY_RSA    NID_rsaEncryption
 # define EVP_PKEY_RSA2   NID_rsa
 # define EVP_PKEY_RSA_PSS NID_rsassaPss
@@ -411,6 +414,11 @@ typedef int (EVP_PBE_KEYGEN) (EVP_CIPHER_CTX *ctx, const char *pass,
 # ifndef OPENSSL_NO_KYBER
 #  define EVP_PKEY_assign_Kyber(pkey,kyber) EVP_PKEY_assign((pkey),EVP_PKEY_KYBER,\
                                         (char *)(kyber))
+# endif
+
+# ifndef OPENSSL_NO_DILITHIUM
+#  define EVP_PKEY_assign_Dilithium(pkey,dilithium) EVP_PKEY_assign((pkey),EVP_PKEY_DILITHIUM,\
+                                        (char *)(dilithium))
 # endif
 
 # ifndef OPENSSL_NO_DSA
@@ -1026,6 +1034,12 @@ int EVP_PKEY_set1_Kyber(EVP_PKEY *pkey, struct kyber_st *key);
 struct kyber_st *EVP_PKEY_get0_Kyber(EVP_PKEY *pkey);
 struct kyber_st *EVP_PKEY_get1_Kyber(EVP_PKEY *pkey);
 # endif
+# ifndef OPENSSL_NO_DILITHIUM
+struct dilithium_st;
+int EVP_PKEY_set1_Dilithium(EVP_PKEY *pkey, struct dilithium_st *key);
+struct dilithium_st *EVP_PKEY_get0_Dilithium(EVP_PKEY *pkey);
+struct dilithium_st *EVP_PKEY_get1_Dilithium(EVP_PKEY *pkey);
+# endif
 # ifndef OPENSSL_NO_DSA
 struct dsa_st;
 int EVP_PKEY_set1_DSA(EVP_PKEY *pkey, struct dsa_st *key);
@@ -1157,6 +1171,9 @@ int EVP_PBE_get(int *ptype, int *ppbe_nid, size_t num);
 
 # define ASN1_PKEY_CTRL_SET1_TLS_KYBER_PK   0xb
 # define ASN1_PKEY_CTRL_GET1_TLS_KYBER_PK   0xc
+
+# define ASN1_PKEY_CTRL_SET1_TLS_DILITHIUM_PK   0xd
+# define ASN1_PKEY_CTRL_GET1_TLS_DILITHIUM_PK   0xe
 
 int EVP_PKEY_asn1_get_count(void);
 const EVP_PKEY_ASN1_METHOD *EVP_PKEY_asn1_get0(int idx);

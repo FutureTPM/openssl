@@ -137,6 +137,11 @@
 #define NID_kyber               1195
 #define OBJ_kyber               OBJ_X9cm,4L
 
+#define SN_dilithium            "Dilithium"
+#define LN_dilithium            "dilithium"
+#define NID_dilithium           1196
+#define OBJ_dilithium           OBJ_X9cm,5L
+
 #define SN_ansi_X9_62           "ansi-X9-62"
 #define LN_ansi_X9_62           "ANSI X9.62"
 #define NID_ansi_X9_62          405
@@ -5039,7 +5044,7 @@
 
 #define SN_kx_kyber             "KxKyber"
 #define LN_kx_kyber             "kx-kyber"
-#define NID_kx_kyber            1196
+#define NID_kx_kyber            1197
 
 #define SN_kx_gost              "KxGOST"
 #define LN_kx_gost              "kx-gost"
@@ -5052,6 +5057,10 @@
 #define SN_auth_rsa             "AuthRSA"
 #define LN_auth_rsa             "auth-rsa"
 #define NID_auth_rsa            1046
+
+#define SN_auth_dilithium               "AuthDilithium"
+#define LN_auth_dilithium               "auth-dilithium"
+#define NID_auth_dilithium              1198
 
 #define SN_auth_ecdsa           "AuthECDSA"
 #define LN_auth_ecdsa           "auth-ecdsa"

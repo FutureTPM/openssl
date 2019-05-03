@@ -328,6 +328,73 @@ int i2d_Kyber_PUBKEY_bio(BIO *bp, Kyber *kyber)
 }
 #endif
 
+#ifndef OPENSSL_NO_DILITHIUM
+
+# ifndef OPENSSL_NO_STDIO
+Dilithium *d2i_DilithiumPrivateKey_fp(FILE *fp, Dilithium **dilithium)
+{
+    return ASN1_d2i_fp_of(Dilithium, dilithium_new, d2i_DilithiumPrivateKey, fp, dilithium);
+}
+
+int i2d_DilithiumPrivateKey_fp(FILE *fp, Dilithium *dilithium)
+{
+    return ASN1_i2d_fp_of(Dilithium, i2d_DilithiumPrivateKey, fp, dilithium);
+}
+
+Dilithium *d2i_DilithiumPublicKey_fp(FILE *fp, Dilithium **dilithium)
+{
+    return ASN1_d2i_fp_of(Dilithium, dilithium_new, d2i_DilithiumPublicKey, fp, dilithium);
+}
+
+Dilithium *d2i_Dilithium_PUBKEY_fp(FILE *fp, Dilithium **dilithium)
+{
+    return ASN1_d2i_fp((void *(*)(void))
+                       dilithium_new, (D2I_OF(void)) d2i_DILITHIUM_PUBKEY, fp,
+                       (void **)dilithium);
+}
+
+int i2d_DilithiumPublicKey_fp(FILE *fp, Dilithium *dilithium)
+{
+    return ASN1_i2d_fp_of(Dilithium, i2d_DilithiumPublicKey, fp, dilithium);
+}
+
+int i2d_Dilithium_PUBKEY_fp(FILE *fp, Dilithium *dilithium)
+{
+    return ASN1_i2d_fp((I2D_OF(void))i2d_DILITHIUM_PUBKEY, fp, dilithium);
+}
+# endif
+
+Dilithium *d2i_DilithiumPrivateKey_bio(BIO *bp, Dilithium **dilithium)
+{
+    return ASN1_d2i_bio_of(Dilithium, dilithium_new, d2i_DilithiumPrivateKey, bp, dilithium);
+}
+
+int i2d_DilithiumPrivateKey_bio(BIO *bp, Dilithium *dilithium)
+{
+    return ASN1_i2d_bio_of(Dilithium, i2d_DilithiumPrivateKey, bp, dilithium);
+}
+
+Dilithium *d2i_DilithiumPublicKey_bio(BIO *bp, Dilithium **dilithium)
+{
+    return ASN1_d2i_bio_of(Dilithium, dilithium_new, d2i_DilithiumPublicKey, bp, dilithium);
+}
+
+Dilithium *d2i_Dilithium_PUBKEY_bio(BIO *bp, Dilithium **dilithium)
+{
+    return ASN1_d2i_bio_of(Dilithium, dilithium_new, d2i_DILITHIUM_PUBKEY, bp, dilithium);
+}
+
+int i2d_DilithiumPublicKey_bio(BIO *bp, Dilithium *dilithium)
+{
+    return ASN1_i2d_bio_of(Dilithium, i2d_DilithiumPublicKey, bp, dilithium);
+}
+
+int i2d_Dilithium_PUBKEY_bio(BIO *bp, Dilithium *dilithium)
+{
+    return ASN1_i2d_bio_of(Dilithium, i2d_DILITHIUM_PUBKEY, bp, dilithium);
+}
+#endif
+
 #ifndef OPENSSL_NO_DSA
 # ifndef OPENSSL_NO_STDIO
 DSA *d2i_DSAPrivateKey_fp(FILE *fp, DSA **dsa)

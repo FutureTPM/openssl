@@ -47,6 +47,9 @@ X9cm 3			: DSA-SHA1		: dsaWithSHA1
 !Cname kyber
 X9cm 4			: Kyber			: kyber
 
+!Cname dilithium
+X9cm 5			: Dilithium			: dilithium
+
 ISO-US 10045		: ansi-X9-62		: ANSI X9.62
 !module X9-62
 !Alias id-fieldType ansi-X9-62 1
@@ -1628,15 +1631,16 @@ id-pkinit 5                     : pkInitKDC             : Signing KDC Response
                             : KxANY        : kx-any
 
 # NIDs for cipher authentication
-                            : AuthRSA      : auth-rsa
-                            : AuthECDSA    : auth-ecdsa
-                            : AuthPSK      : auth-psk
-                            : AuthDSS      : auth-dss
-                            : AuthGOST01   : auth-gost01
-                            : AuthGOST12   : auth-gost12
-                            : AuthSRP      : auth-srp
-                            : AuthNULL     : auth-null
-                            : AuthANY      : auth-any
+                            : AuthRSA       : auth-rsa
+                            : AuthDilithium : auth-dilithium
+                            : AuthECDSA     : auth-ecdsa
+                            : AuthPSK       : auth-psk
+                            : AuthDSS       : auth-dss
+                            : AuthGOST01    : auth-gost01
+                            : AuthGOST12    : auth-gost12
+                            : AuthSRP       : auth-srp
+                            : AuthNULL      : auth-null
+                            : AuthANY       : auth-any
 # NID for Poly1305
                             : Poly1305     : poly1305
 # NID for Kyber

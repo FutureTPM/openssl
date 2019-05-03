@@ -1,0 +1,8 @@
+LIBS=../../libcrypto
+SOURCE[../../libcrypto]=\
+        dilithium_gen.c dilithium_lib.c dilithium_err.c dilithium_chk.c \
+        dilithium_asn1.c dilithium_ameth.c \
+        dilithium_prn.c dilithium_pmeth.c dilithium_crpt.c dilithium_meth.c \
+        fips202.c dilithium-sign.c dilithium-ntt.c dilithium-poly.c \
+        dilithium-polyvec.c dilithium-reduce.c dilithium_ossl.c \
+        dilithium-packing.c dilithium_sign.c dilithium-rounding.c

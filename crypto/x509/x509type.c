@@ -54,6 +54,9 @@ int X509_certificate_type(const X509 *x, const EVP_PKEY *pkey)
     case EVP_PKEY_KYBER:
         ret = EVP_PK_KYBER | EVP_PKT_EXCH | EVP_PKT_ENC;
         break;
+    case EVP_PKEY_DILITHIUM:
+        ret = EVP_PK_DILITHIUM | EVP_PKT_SIGN;
+        break;
     case NID_id_GostR3410_2001:
     case NID_id_GostR3410_2012_256:
     case NID_id_GostR3410_2012_512:
@@ -70,6 +73,9 @@ int X509_certificate_type(const X509 *x, const EVP_PKEY *pkey)
         case NID_rsaEncryption:
         case NID_rsa:
             ret |= EVP_PKS_RSA;
+            break;
+        case NID_dilithium:
+            ret |= EVP_PKS_DILITHIUM;
             break;
         case NID_dsa:
         case NID_dsa_2:

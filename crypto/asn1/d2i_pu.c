@@ -15,6 +15,7 @@
 #include <openssl/asn1.h>
 #include <openssl/rsa.h>
 #include <openssl/kyber.h>
+#include <openssl/dilithium.h>
 #include <openssl/dsa.h>
 #include <openssl/ec.h>
 
@@ -59,6 +60,14 @@ EVP_PKEY *d2i_PublicKey(int type, EVP_PKEY **a, const unsigned char **pp,
 #ifndef OPENSSL_NO_KYBER
     case EVP_PKEY_KYBER:
         if ((ret->pkey.kyber = d2i_KyberPublicKey(NULL, pp, length)) == NULL) {
+            ASN1err(ASN1_F_D2I_PUBLICKEY, ERR_R_ASN1_LIB);
+            goto err;
+        }
+        break;
+#endif
+#ifndef OPENSSL_NO_DILITHIUM
+    case EVP_PKEY_DILITHIUM:
+        if ((ret->pkey.dilithium = d2i_DilithiumPublicKey(NULL, pp, length)) == NULL) {
             ASN1err(ASN1_F_D2I_PUBLICKEY, ERR_R_ASN1_LIB);
             goto err;
         }

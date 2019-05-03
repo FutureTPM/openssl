@@ -10,7 +10,7 @@
  */
 
 /* Serialized OID's */
-static const unsigned char so[7769] = {
+static const unsigned char so[7776] = {
     0x2A,0x86,0x48,0x86,0xF7,0x0D,                 /* [    0] OBJ_rsadsi */
     0x2A,0x86,0x48,0x86,0xF7,0x0D,0x01,            /* [    6] OBJ_pkcs */
     0x2A,0x86,0x48,0x86,0xF7,0x0D,0x02,0x02,       /* [   13] OBJ_md2 */
@@ -1077,9 +1077,10 @@ static const unsigned char so[7769] = {
     0x2A,0x86,0x48,0x86,0xF7,0x0D,0x02,0x0C,       /* [ 7745] OBJ_hmacWithSHA512_224 */
     0x2A,0x86,0x48,0x86,0xF7,0x0D,0x02,0x0D,       /* [ 7753] OBJ_hmacWithSHA512_256 */
     0x2A,0x86,0x48,0xCE,0x38,0x04,0x04,            /* [ 7761] OBJ_kyber */
+    0x2A,0x86,0x48,0xCE,0x38,0x04,0x05,            /* [ 7768] OBJ_dilithium */
 };
 
-#define NUM_NID 1197
+#define NUM_NID 1199
 static const ASN1_OBJECT nid_objs[NUM_NID] = {
     {"UNDEF", "undefined", NID_undef},
     {"rsadsi", "RSA Data Security, Inc.", NID_rsadsi, 6, &so[0]},
@@ -2277,10 +2278,12 @@ static const ASN1_OBJECT nid_objs[NUM_NID] = {
     {"hmacWithSHA512-224", "hmacWithSHA512-224", NID_hmacWithSHA512_224, 8, &so[7745]},
     {"hmacWithSHA512-256", "hmacWithSHA512-256", NID_hmacWithSHA512_256, 8, &so[7753]},
     {"Kyber", "kyber", NID_kyber, 7, &so[7761]},
+    {"Dilithium", "dilithium", NID_dilithium, 7, &so[7768]},
     {"KxKyber", "kx-kyber", NID_kx_kyber},
+    {"AuthDilithium", "auth-dilithium", NID_auth_dilithium},
 };
 
-#define NUM_SN 1188
+#define NUM_SN 1190
 static const unsigned int sn_objs[NUM_SN] = {
      364,    /* "AD_DVCS" */
      419,    /* "AES-128-CBC" */
@@ -2344,6 +2347,7 @@ static const unsigned int sn_objs[NUM_SN] = {
     1078,    /* "ARIA-256-OFB" */
     1064,    /* "AuthANY" */
     1049,    /* "AuthDSS" */
+    1198,    /* "AuthDilithium" */
     1047,    /* "AuthECDSA" */
     1050,    /* "AuthGOST01" */
     1051,    /* "AuthGOST12" */
@@ -2425,6 +2429,7 @@ static const unsigned int sn_objs[NUM_SN] = {
       70,    /* "DSA-SHA1-old" */
       67,    /* "DSA-old" */
      297,    /* "DVCS" */
+    1196,    /* "Dilithium" */
     1087,    /* "ED25519" */
     1088,    /* "ED448" */
       99,    /* "GN" */
@@ -2451,7 +2456,7 @@ static const unsigned int sn_objs[NUM_SN] = {
     1038,    /* "KxECDHE" */
     1040,    /* "KxECDHE-PSK" */
     1045,    /* "KxGOST" */
-    1196,    /* "KxKyber" */
+    1197,    /* "KxKyber" */
     1043,    /* "KxPSK" */
     1037,    /* "KxRSA" */
     1042,    /* "KxRSA_PSK" */
@@ -3472,7 +3477,7 @@ static const unsigned int sn_objs[NUM_SN] = {
     1093,    /* "x509ExtAdmission" */
 };
 
-#define NUM_LN 1188
+#define NUM_LN 1190
 static const unsigned int ln_objs[NUM_LN] = {
      363,    /* "AD Time Stamping" */
      405,    /* "ANSI X9.62" */
@@ -3757,6 +3762,7 @@ static const unsigned int ln_objs[NUM_LN] = {
      485,    /* "associatedName" */
      501,    /* "audio" */
     1064,    /* "auth-any" */
+    1198,    /* "auth-dilithium" */
     1049,    /* "auth-dss" */
     1047,    /* "auth-ecdsa" */
     1050,    /* "auth-gost01" */
@@ -3906,6 +3912,7 @@ static const unsigned int ln_objs[NUM_LN] = {
      938,    /* "dhSinglePass-stdDH-sha256kdf-scheme" */
      939,    /* "dhSinglePass-stdDH-sha384kdf-scheme" */
      940,    /* "dhSinglePass-stdDH-sha512kdf-scheme" */
+    1196,    /* "dilithium" */
       11,    /* "directory services (X.500)" */
      378,    /* "directory services - algorithms" */
      887,    /* "distinguishedName" */
@@ -4273,7 +4280,7 @@ static const unsigned int ln_objs[NUM_LN] = {
     1038,    /* "kx-ecdhe" */
     1040,    /* "kx-ecdhe-psk" */
     1045,    /* "kx-gost" */
-    1196,    /* "kx-kyber" */
+    1197,    /* "kx-kyber" */
     1043,    /* "kx-psk" */
     1037,    /* "kx-rsa" */
     1042,    /* "kx-rsa-psk" */
@@ -4664,7 +4671,7 @@ static const unsigned int ln_objs[NUM_LN] = {
      125,    /* "zlib compression" */
 };
 
-#define NUM_OBJ 1072
+#define NUM_OBJ 1073
 static const unsigned int obj_objs[NUM_OBJ] = {
        0,    /* OBJ_undef                        0 */
      181,    /* OBJ_iso                          1 */
@@ -5076,6 +5083,7 @@ static const unsigned int obj_objs[NUM_OBJ] = {
      116,    /* OBJ_dsa                          1 2 840 10040 4 1 */
      113,    /* OBJ_dsaWithSHA1                  1 2 840 10040 4 3 */
     1195,    /* OBJ_kyber                        1 2 840 10040 4 4 */
+    1196,    /* OBJ_dilithium                    1 2 840 10040 4 5 */
      406,    /* OBJ_X9_62_prime_field            1 2 840 10045 1 1 */
      407,    /* OBJ_X9_62_characteristic_two_field 1 2 840 10045 1 2 */
      408,    /* OBJ_X9_62_id_ecPublicKey         1 2 840 10045 2 1 */

@@ -16,6 +16,8 @@
 #include <openssl/bioerr.h>
 #include <openssl/comperr.h>
 #include <openssl/rsaerr.h>
+#include <openssl/kybererr.h>
+#include <openssl/dilithiumerr.h>
 #include <openssl/dherr.h>
 #include <openssl/dsaerr.h>
 #include <openssl/evperr.h>
@@ -47,6 +49,12 @@ int err_load_crypto_strings_int(void)
         ERR_load_BN_strings() == 0 ||
 # ifndef OPENSSL_NO_RSA
         ERR_load_RSA_strings() == 0 ||
+# endif
+# ifndef OPENSSL_NO_KYBER
+        ERR_load_Kyber_strings() == 0 ||
+# endif
+# ifndef OPENSSL_NO_DILITHIUM
+        ERR_load_Dilithium_strings() == 0 ||
 # endif
 # ifndef OPENSSL_NO_DH
         ERR_load_DH_strings() == 0 ||

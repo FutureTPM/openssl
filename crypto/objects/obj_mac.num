@@ -1193,3 +1193,4 @@ magma_mac		1192
 hmacWithSHA512_224		1193
 hmacWithSHA512_256		1194
 kyber                   1195
+dilithium               1196

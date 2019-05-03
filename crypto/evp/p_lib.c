@@ -16,6 +16,7 @@
 #include <openssl/evp.h>
 #include <openssl/x509.h>
 #include <openssl/rsa.h>
+#include <openssl/dilithium.h>
 #include <openssl/dsa.h>
 #include <openssl/dh.h>
 #include <openssl/kyber.h>
@@ -505,6 +506,33 @@ Kyber *EVP_PKEY_get1_Kyber(EVP_PKEY *pkey)
     Kyber *ret = EVP_PKEY_get0_Kyber(pkey);
     if (ret != NULL)
         kyber_up_ref(ret);
+    return ret;
+}
+#endif
+
+#ifndef OPENSSL_NO_DILITHIUM
+int EVP_PKEY_set1_Dilithium(EVP_PKEY *pkey, Dilithium *key)
+{
+    int ret = EVP_PKEY_assign_Dilithium(pkey, key);
+    if (ret)
+        dilithium_up_ref(key);
+    return ret;
+}
+
+Dilithium *EVP_PKEY_get0_Dilithium(EVP_PKEY *pkey)
+{
+    if (pkey->type != EVP_PKEY_DILITHIUM) {
+        EVPerr(EVP_F_EVP_PKEY_GET0_DILITHIUM, EVP_R_EXPECTING_AN_DILITHIUM_KEY);
+        return NULL;
+    }
+    return pkey->pkey.dilithium;
+}
+
+Dilithium *EVP_PKEY_get1_Dilithium(EVP_PKEY *pkey)
+{
+    Dilithium *ret = EVP_PKEY_get0_Dilithium(pkey);
+    if (ret != NULL)
+        dilithium_up_ref(ret);
     return ret;
 }
 #endif

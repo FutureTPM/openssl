@@ -18,6 +18,7 @@
 #include <openssl/dsa.h>
 #include <openssl/dh.h>
 #include <openssl/kyber.h>
+#include <openssl/dilithium.h>
 
 #ifndef OPENSSL_NO_RSA
 static RSA *pkey_get_rsa(EVP_PKEY *key, RSA **rsa);
@@ -32,6 +33,10 @@ static EC_KEY *pkey_get_eckey(EVP_PKEY *key, EC_KEY **eckey);
 
 #ifndef OPENSSL_NO_KYBER
 static Kyber *pkey_get_kyber(EVP_PKEY *key, Kyber **kyber);
+#endif
+
+#ifndef OPENSSL_NO_DILITHIUM
+static Dilithium *pkey_get_dilithium(EVP_PKEY *key, Dilithium **dilithium);
 #endif
 
 IMPLEMENT_PEM_rw(X509_REQ, X509_REQ, PEM_STRING_X509_REQ, X509_REQ)
@@ -222,6 +227,50 @@ Kyber *PEM_read_KyberPrivateKey(FILE *fp, Kyber **kyber, pem_password_cb *cb,
     EVP_PKEY *pktmp;
     pktmp = PEM_read_PrivateKey(fp, NULL, cb, u);
     return pkey_get_kyber(pktmp, kyber); /* will free pktmp */
+}
+
+# endif
+
+#endif
+
+
+#ifndef OPENSSL_NO_DILITHIUM
+static Dilithium *pkey_get_dilithium(EVP_PKEY *key, Dilithium **dilithium)
+{
+    Dilithium *dtmp;
+    if (!key)
+        return NULL;
+    dtmp = EVP_PKEY_get1_Dilithium(key);
+    EVP_PKEY_free(key);
+    if (!dtmp)
+        return NULL;
+    if (dilithium) {
+        dilithium_free(*dilithium);
+        *dilithium = dtmp;
+    }
+    return dtmp;
+}
+
+Dilithium *PEM_read_bio_DilithiumPrivateKey(BIO *bp, Dilithium **key, pem_password_cb *cb,
+                                  void *u)
+{
+    EVP_PKEY *pktmp;
+    pktmp = PEM_read_bio_PrivateKey(bp, NULL, cb, u);
+    return pkey_get_dilithium(pktmp, key); /* will free pktmp */
+}
+
+IMPLEMENT_PEM_write_cb(DilithiumPrivateKey, Dilithium, PEM_STRING_DILITHIUM_PRIVATEKEY,
+                       DilithiumPrivateKey)
+IMPLEMENT_PEM_rw_const(DilithiumPublicKey, Dilithium, PEM_STRING_DILITHIUM_PUBLICKEY,
+                       DilithiumPublicKey)
+IMPLEMENT_PEM_rw(DILITHIUM_PUBKEY, Dilithium, PEM_STRING_PUBLIC, DILITHIUM_PUBKEY)
+# ifndef OPENSSL_NO_STDIO
+Dilithium *PEM_read_DilithiumPrivateKey(FILE *fp, Dilithium **dilithium, pem_password_cb *cb,
+                              void *u)
+{
+    EVP_PKEY *pktmp;
+    pktmp = PEM_read_PrivateKey(fp, NULL, cb, u);
+    return pkey_get_dilithium(pktmp, dilithium); /* will free pktmp */
 }
 
 # endif
