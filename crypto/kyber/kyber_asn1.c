@@ -6,11 +6,23 @@
 
 typedef struct kyber_privatekey_st {
     int32_t mode;
+    int32_t publickeybytes;
+    int32_t secretkeybytes;
+    int32_t polyveccompressedbytes;
+    int32_t indcpa_secretkeybytes;
+    int32_t indcpa_publickeybytes;
+    int32_t ciphertextbytes;
     ASN1_OCTET_STRING *private_key;
 } KYBERPrivateKey;
 
 ASN1_SEQUENCE(KYBERPrivateKey) = {
         ASN1_EMBED(KYBERPrivateKey, mode, INT32),
+        ASN1_EMBED(KYBERPrivateKey, publickeybytes, INT32),
+        ASN1_EMBED(KYBERPrivateKey, secretkeybytes, INT32),
+        ASN1_EMBED(KYBERPrivateKey, polyveccompressedbytes, INT32),
+        ASN1_EMBED(KYBERPrivateKey, indcpa_secretkeybytes, INT32),
+        ASN1_EMBED(KYBERPrivateKey, indcpa_publickeybytes, INT32),
+        ASN1_EMBED(KYBERPrivateKey, ciphertextbytes, INT32),
         ASN1_SIMPLE(KYBERPrivateKey, private_key, ASN1_OCTET_STRING),
 } static_ASN1_SEQUENCE_END(KYBERPrivateKey)
 
@@ -20,11 +32,23 @@ IMPLEMENT_ASN1_FUNCTIONS_const(KYBERPrivateKey)
 
 typedef struct kyber_publickey_st {
     int32_t mode;
+    int32_t publickeybytes;
+    int32_t secretkeybytes;
+    int32_t polyveccompressedbytes;
+    int32_t indcpa_secretkeybytes;
+    int32_t indcpa_publickeybytes;
+    int32_t ciphertextbytes;
     ASN1_OCTET_STRING *public_key;
 } KYBERPublicKey;
 
 ASN1_SEQUENCE(KYBERPublicKey) = {
         ASN1_EMBED(KYBERPublicKey, mode, INT32),
+        ASN1_EMBED(KYBERPrivateKey, publickeybytes, INT32),
+        ASN1_EMBED(KYBERPrivateKey, secretkeybytes, INT32),
+        ASN1_EMBED(KYBERPrivateKey, polyveccompressedbytes, INT32),
+        ASN1_EMBED(KYBERPrivateKey, indcpa_secretkeybytes, INT32),
+        ASN1_EMBED(KYBERPrivateKey, indcpa_publickeybytes, INT32),
+        ASN1_EMBED(KYBERPrivateKey, ciphertextbytes, INT32),
         ASN1_SIMPLE(KYBERPublicKey, public_key, ASN1_OCTET_STRING),
 } static_ASN1_SEQUENCE_END(KYBERPublicKey)
 
@@ -47,6 +71,7 @@ int i2d_KyberPrivateKey(Kyber *a, unsigned char **out)
     int ret = 0, ok = 0;
     unsigned char *priv= NULL;
     size_t privlen = 0;
+    KyberParams params;
 
     KYBERPrivateKey *priv_key = NULL;
 
@@ -60,7 +85,18 @@ int i2d_KyberPrivateKey(Kyber *a, unsigned char **out)
         goto err;
     }
 
+    /* Store Kyber security mode */
     priv_key->mode = a->mode;
+
+    /* Generate Kyber parameters for the specified security mode */
+    params = generate_kyber_params(a->mode);
+
+    priv_key->publickeybytes         = params.publickeybytes;
+    priv_key->secretkeybytes         = params.secretkeybytes;
+    priv_key->polyveccompressedbytes = params.polyveccompressedbytes;
+    priv_key->indcpa_secretkeybytes  = params.indcpa_secretkeybytes;
+    priv_key->indcpa_publickeybytes  = params.indcpa_publickeybytes;
+    priv_key->ciphertextbytes        = params.ciphertextbytes;
 
     privlen = a->private_key_size;
 
@@ -108,8 +144,6 @@ Kyber *d2i_KyberPrivateKey(Kyber **a, const unsigned char **in, long len)
 
     ret->mode = priv_key->mode;
 
-    KyberParams params = generate_kyber_params(ret->mode);
-
     if (priv_key->private_key) {
         ASN1_OCTET_STRING *pkey = priv_key->private_key;
         ret->private_key_size = ASN1_STRING_length(pkey);
@@ -125,7 +159,7 @@ Kyber *d2i_KyberPrivateKey(Kyber **a, const unsigned char **in, long len)
         memmove(ret->private_key, ASN1_STRING_get0_data(pkey),
                 ret->private_key_size);
 
-        ret->public_key_size = params.publickeybytes;
+        ret->public_key_size = priv_key->publickeybytes;
         if (ret->public_key) {
             OPENSSL_free(ret->public_key);
         }
@@ -134,7 +168,7 @@ Kyber *d2i_KyberPrivateKey(Kyber **a, const unsigned char **in, long len)
             Kybererr(KYBER_F_D2I_KYBERPRIVATEKEY, ERR_R_MALLOC_FAILURE);
             goto err;
         }
-        memmove(ret->public_key, ret->private_key + params.indcpa_secretkeybytes,
+        memmove(ret->public_key, ret->private_key + priv_key->indcpa_secretkeybytes,
                 ret->public_key_size);
     } else {
         Kybererr(KYBER_F_D2I_KYBERPRIVATEKEY, KYBER_R_MISSING_PRIVATE_KEY);
@@ -159,6 +193,7 @@ int i2d_KyberPublicKey(Kyber *a, unsigned char **out)
     int ret = 0, ok = 0;
     unsigned char *pub= NULL;
     size_t publen = 0;
+    KyberParams params;
 
     KYBERPublicKey *pub_key = NULL;
 
@@ -175,6 +210,16 @@ int i2d_KyberPublicKey(Kyber *a, unsigned char **out)
     pub_key->mode = a->mode;
 
     publen = a->public_key_size;
+
+    /* Generate Kyber parameters for the specified security mode */
+    params = generate_kyber_params(a->mode);
+
+    pub_key->publickeybytes         = params.publickeybytes;
+    pub_key->secretkeybytes         = params.secretkeybytes;
+    pub_key->polyveccompressedbytes = params.polyveccompressedbytes;
+    pub_key->indcpa_secretkeybytes  = params.indcpa_secretkeybytes;
+    pub_key->indcpa_publickeybytes  = params.indcpa_publickeybytes;
+    pub_key->ciphertextbytes        = params.ciphertextbytes;
 
     if (publen == 0) {
         Kybererr(KYBER_F_I2D_KYBERPUBLICKEY, ERR_R_KYBER_LIB);

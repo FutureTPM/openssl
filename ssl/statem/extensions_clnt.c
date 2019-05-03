@@ -627,13 +627,7 @@ static int add_key_share(SSL *s, WPACKET *pkt, unsigned int curve_id)
         goto err;
     }
 
-    /*
-     * TODO(TLS1.3): When changing to send more than one key_share we're
-     * going to need to be able to save more than one EVP_PKEY. For now
-     * we reuse the existing tmp.pkey
-     */
     s->s3->tmp.kyber_pkey = kyber_key_share_key;
-    OPENSSL_free(pk);
 
     /*
      * Handle ECDHE key
@@ -681,8 +675,8 @@ static int add_key_share(SSL *s, WPACKET *pkt, unsigned int curve_id)
         EVP_PKEY_free(kyber_key_share_key);
     if (s->s3->tmp.pkey == NULL)
         EVP_PKEY_free(ecdhe_key_share_key);
-    OPENSSL_free(pk);
-    OPENSSL_free(encoded_point);
+    if (encoded_point != NULL)
+        OPENSSL_free(encoded_point);
     return 0;
 }
 #endif

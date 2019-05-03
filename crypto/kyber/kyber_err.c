@@ -61,7 +61,7 @@ static const ERR_STRING_DATA KYBER_str_reasons[] = {
 
 #endif
 
-int ERR_load_KYBER_strings(void)
+int ERR_load_Kyber_strings(void)
 {
 #ifndef OPENSSL_NO_ERR
     if (ERR_func_error_string(KYBER_str_functs[0].error) == NULL) {

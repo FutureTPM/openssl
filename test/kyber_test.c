@@ -5,8 +5,6 @@
 
 #include <openssl/crypto.h>
 #include <openssl/err.h>
-#include <openssl/rand.h>
-#include <openssl/bn.h>
 
 #include "testutil.h"
 
@@ -31,7 +29,7 @@ static int test_kyber_encrypt_decrypt(int mode)
     int num;
 
     plen = sizeof(ptext_ex) - 1;
-    clen = plen + ((mode + 2) * 352 + 96);
+    clen = ((mode + 2) * 352 + 96) + 32;
 
     ret = kyber_generate_key_ex(key, (mode + 2) & 0xff);
     if (ret == 0) {
@@ -43,8 +41,8 @@ static int test_kyber_encrypt_decrypt(int mode)
     if (!TEST_int_eq(num, clen))
         goto err;
 
-    num = kyber_private_decrypt(num, ctext, ptext, key);
-    if (!TEST_mem_eq(ptext, num, ptext_ex, plen))
+    num = kyber_private_decrypt(num, ctext + 32, ptext, key);
+    if (!TEST_mem_eq(ptext, num, ctext, 32))
         goto err;
 
     ret = 1;

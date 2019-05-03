@@ -4,7 +4,7 @@
 #include <openssl/evp.h>
 
 #ifndef OPENSSL_NO_STDIO
-int Kyber_print_fp(FILE *fp, const Kyber *x, int off)
+int kyber_print_fp(FILE *fp, const Kyber *x, int off)
 {
     BIO *b;
     int ret;

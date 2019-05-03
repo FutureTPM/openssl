@@ -60,6 +60,7 @@ const KYBER_METHOD *kyber_get_default_method(void);
 const KYBER_METHOD *kyber_null_method(void);
 const KYBER_METHOD *kyber_get_method(const Kyber *kyber);
 int kyber_set_method(Kyber *kyber, const KYBER_METHOD *meth);
+const KYBER_METHOD *kyber_OpenSSL(void);
 
 int kyber_pkey_ctx_ctrl(EVP_PKEY_CTX *ctx, int optype, int cmd, int p1, void *p2);
 
@@ -85,7 +86,7 @@ Kyber *KyberPrivateKey_dup(Kyber *kyber);
 KYBER_METHOD *kyber_meth_new(const char *name, int flags);
 void kyber_meth_free(KYBER_METHOD *meth);
 KYBER_METHOD *kyber_meth_dup(const KYBER_METHOD *meth);
-const char *Kyber_meth_get0_name(const KYBER_METHOD *meth);
+const char *kyber_meth_get0_name(const KYBER_METHOD *meth);
 int kyber_meth_set1_name(KYBER_METHOD *meth, const char *name);
 int kyber_meth_get_flags(const KYBER_METHOD *meth);
 int kyber_meth_set_flags(KYBER_METHOD *meth, int flags);

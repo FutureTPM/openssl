@@ -195,14 +195,17 @@ int kyberutl_main(int argc, char **argv)
     }
     switch (kyber_mode) {
 
-    case KYBER_ENCRYPT:
-        kyber_outlen = kyber_public_encrypt(kyber_inlen, kyber_in, kyber_out, kyber);
-        break;
+        // TODO: Due to the latest commit this doesn't work as intended
+        case KYBER_ENCRYPT:
+            kyber_outlen =
+                kyber_public_encrypt(kyber_inlen, kyber_in, kyber_out, kyber);
+            break;
 
-    case KYBER_DECRYPT:
-        kyber_outlen =
-            kyber_private_decrypt(kyber_inlen, kyber_in, kyber_out, kyber);
-        break;
+        // TODO: Due to the latest commit this doesn't work as intended
+        case KYBER_DECRYPT:
+            kyber_outlen =
+                kyber_private_decrypt(kyber_inlen, kyber_in, kyber_out, kyber);
+            break;
     }
 
     if (kyber_outlen < 0) {
