@@ -142,6 +142,41 @@
 #define NID_dilithium           1196
 #define OBJ_dilithium           OBJ_X9cm,5L
 
+#define SN_dilithium_with_SHA1          "Dilithium-SHA1"
+#define LN_dilithium_with_SHA1          "dilithium_with_SHA1"
+#define NID_dilithium_with_SHA1         1197
+#define OBJ_dilithium_with_SHA1         OBJ_X9cm,6L
+
+#define SN_dilithium_with_SHA256                "Dilithium-SHA256"
+#define LN_dilithium_with_SHA256                "dilithium_with_SHA256"
+#define NID_dilithium_with_SHA256               1198
+#define OBJ_dilithium_with_SHA256               OBJ_X9cm,7L
+
+#define SN_dilithium_with_SHA384                "Dilithium-SHA384"
+#define LN_dilithium_with_SHA384                "dilithium_with_SHA384"
+#define NID_dilithium_with_SHA384               1199
+#define OBJ_dilithium_with_SHA384               OBJ_X9cm,8L
+
+#define SN_dilithium_with_SHA512                "Dilithium-SHA512"
+#define LN_dilithium_with_SHA512                "dilithium_with_SHA512"
+#define NID_dilithium_with_SHA512               1200
+#define OBJ_dilithium_with_SHA512               OBJ_X9cm,9L
+
+#define SN_dilithium_with_SHA3_256              "Dilithium-SHA3_256"
+#define LN_dilithium_with_SHA3_256              "dilithium_with_SHA3_256"
+#define NID_dilithium_with_SHA3_256             1201
+#define OBJ_dilithium_with_SHA3_256             OBJ_X9cm,10L
+
+#define SN_dilithium_with_SHA3_384              "Dilithium-SHA3_384"
+#define LN_dilithium_with_SHA3_384              "dilithium_with_SHA3_384"
+#define NID_dilithium_with_SHA3_384             1202
+#define OBJ_dilithium_with_SHA3_384             OBJ_X9cm,11L
+
+#define SN_dilithium_with_SHA3_512              "Dilithium-SHA3_512"
+#define LN_dilithium_with_SHA3_512              "dilithium_with_SHA3_512"
+#define NID_dilithium_with_SHA3_512             1203
+#define OBJ_dilithium_with_SHA3_512             OBJ_X9cm,12L
+
 #define SN_ansi_X9_62           "ansi-X9-62"
 #define LN_ansi_X9_62           "ANSI X9.62"
 #define NID_ansi_X9_62          405
@@ -5044,7 +5079,7 @@
 
 #define SN_kx_kyber             "KxKyber"
 #define LN_kx_kyber             "kx-kyber"
-#define NID_kx_kyber            1197
+#define NID_kx_kyber            1204
 
 #define SN_kx_gost              "KxGOST"
 #define LN_kx_gost              "kx-gost"
@@ -5060,7 +5095,7 @@
 
 #define SN_auth_dilithium               "AuthDilithium"
 #define LN_auth_dilithium               "auth-dilithium"
-#define NID_auth_dilithium              1198
+#define NID_auth_dilithium              1205
 
 #define SN_auth_ecdsa           "AuthECDSA"
 #define LN_auth_ecdsa           "auth-ecdsa"

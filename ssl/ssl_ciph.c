@@ -110,7 +110,10 @@ static const ssl_cipher_table ssl_cipher_table_mac[SSL_MD_NUM_IDX] = {
     {SSL_GOST12_512, NID_id_GostR3411_2012_512}, /* SSL_MD_GOST12_512_IDX 8 */
     {0, NID_md5_sha1},          /* SSL_MD_MD5_SHA1_IDX 9 */
     {0, NID_sha224},            /* SSL_MD_SHA224_IDX 10 */
-    {0, NID_sha512}             /* SSL_MD_SHA512_IDX 11 */
+    {0, NID_sha512},            /* SSL_MD_SHA512_IDX 11 */
+    {0, NID_sha3_256},          /* SSL_MD_SHA3_256_IDX 12 */
+    {0, NID_sha3_384},          /* SSL_MD_SHA3_384_IDX 13 */
+    {0, NID_sha3_512}           /* SSL_MD_SHA3_512_IDX 14 */
 };
 
 static const EVP_MD *ssl_digest_methods[SSL_MD_NUM_IDX] = {
@@ -133,15 +136,16 @@ static const ssl_cipher_table ssl_cipher_table_kx[] = {
 };
 
 static const ssl_cipher_table ssl_cipher_table_auth[] = {
-    {SSL_aRSA,    NID_auth_rsa},
-    {SSL_aECDSA,  NID_auth_ecdsa},
-    {SSL_aPSK,    NID_auth_psk},
-    {SSL_aDSS,    NID_auth_dss},
-    {SSL_aGOST01, NID_auth_gost01},
-    {SSL_aGOST12, NID_auth_gost12},
-    {SSL_aSRP,    NID_auth_srp},
-    {SSL_aNULL,   NID_auth_null},
-    {SSL_aANY,    NID_auth_any}
+    {SSL_aRSA,       NID_auth_rsa},
+    {SSL_aECDSA,     NID_auth_ecdsa},
+    {SSL_aPSK,       NID_auth_psk},
+    {SSL_aDSS,       NID_auth_dss},
+    {SSL_aGOST01,    NID_auth_gost01},
+    {SSL_aGOST12,    NID_auth_gost12},
+    {SSL_aSRP,       NID_auth_srp},
+    {SSL_aDILITHIUM, NID_auth_dilithium},
+    {SSL_aNULL,      NID_auth_null},
+    {SSL_aANY,       NID_auth_any}
 };
 /* *INDENT-ON* */
 
@@ -234,6 +238,7 @@ static const SSL_CIPHER cipher_aliases[] = {
 
     /* server authentication aliases */
     {0, SSL_TXT_aRSA, NULL, 0, 0, SSL_aRSA},
+    {0, SSL_TXT_aDILITHIUM, NULL, 0, 0, SSL_aDILITHIUM},
     {0, SSL_TXT_aDSS, NULL, 0, 0, SSL_aDSS},
     {0, SSL_TXT_DSS, NULL, 0, 0, SSL_aDSS},
     {0, SSL_TXT_aNULL, NULL, 0, 0, SSL_aNULL},
@@ -402,6 +407,9 @@ int ssl_load_ciphers(void)
 #endif
 #ifdef OPENSSL_NO_KYBER
     disabled_mkey_mask |= SSL_kKYBER;
+#endif
+#ifdef OPENSSL_NO_DILITHIUM
+    disabled_auth_mask |= SSL_aDILITHIUM;
 #endif
 #ifdef OPENSSL_NO_DSA
     disabled_auth_mask |= SSL_aDSS;
@@ -1459,6 +1467,8 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(const SSL_METHOD *ssl_method,
     /* Now arrange all ciphers by preference. */
 
     /* Prefer Quantum Resistant key exchange above all else */
+    ssl_cipher_apply_rule(0, SSL_kKYBER, SSL_aDILITHIUM, 0, 0, 0, 0, CIPHER_ADD,
+                          -1, &head, &tail);
     ssl_cipher_apply_rule(0, SSL_kKYBER, 0, 0, 0, 0, 0, CIPHER_ADD, -1, &head,
                           &tail);
     ssl_cipher_apply_rule(0, SSL_kKYBER, 0, 0, 0, 0, 0, CIPHER_DEL, -1, &head,
@@ -1537,10 +1547,11 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(const SSL_METHOD *ssl_method,
      * Kyber > (EC)DHE + AEAD > (EC)DHE > rest of AEAD > rest.
      * Within each group, ciphers remain sorted by strength and previous
      * preference, i.e.,
-     * 1) ECDHE > DHE
-     * 2) GCM > CHACHA
-     * 3) AES > rest
-     * 4) TLS 1.2 > legacy
+     * 1) Kyber > ECDHE
+     * 2) ECDHE > DHE
+     * 3) GCM > CHACHA
+     * 4) AES > rest
+     * 5) TLS 1.2 > legacy
      *
      * Because we now bump ciphers to the top of the list, we proceed in
      * reverse order of preference.
@@ -1712,6 +1723,9 @@ char *SSL_CIPHER_description(const SSL_CIPHER *cipher, char *buf, int len)
     switch (alg_auth) {
     case SSL_aRSA:
         au = "RSA";
+        break;
+    case SSL_aDILITHIUM:
+        au = "DILITHIUM";
         break;
     case SSL_aDSS:
         au = "DSS";

@@ -204,11 +204,13 @@
 # define SSL_aSRP                0x00000040U
 /* GOST R 34.10-2012 signature auth */
 # define SSL_aGOST12             0x00000080U
+/* Dilithium signature auth */
+# define SSL_aDILITHIUM          0x00000100U
 /* Any appropriate signature auth (for TLS 1.3 ciphersuites) */
 # define SSL_aANY                0x00000000U
 /* All bits requiring a certificate */
 #define SSL_aCERT \
-    (SSL_aRSA | SSL_aDSS | SSL_aECDSA | SSL_aGOST01 | SSL_aGOST12)
+    (SSL_aRSA | SSL_aDSS | SSL_aECDSA | SSL_aGOST01 | SSL_aGOST12 | SSL_aDILITHIUM)
 
 /* Bits for algorithm_enc (symmetric encryption) */
 # define SSL_DES                 0x00000001U
@@ -246,8 +248,8 @@
 
 # define SSL_MD5                 0x00000001U
 # define SSL_SHA1                0x00000002U
-# define SSL_GOST94      0x00000004U
-# define SSL_GOST89MAC   0x00000008U
+# define SSL_GOST94              0x00000004U
+# define SSL_GOST89MAC           0x00000008U
 # define SSL_SHA256              0x00000010U
 # define SSL_SHA384              0x00000020U
 /* Not a real MAC, just an indication it is part of cipher */
@@ -273,7 +275,10 @@
 # define SSL_MD_MD5_SHA1_IDX 9
 # define SSL_MD_SHA224_IDX 10
 # define SSL_MD_SHA512_IDX 11
-# define SSL_MAX_DIGEST 12
+# define SSL_MD_SHA3_256_IDX 12
+# define SSL_MD_SHA3_384_IDX 13
+# define SSL_MD_SHA3_512_IDX 14
+# define SSL_MAX_DIGEST 15
 
 /* Bits for algorithm2 (handshake digests and other extra flags) */
 
@@ -386,8 +391,9 @@
 # define SSL_PKEY_GOST12_512     6
 # define SSL_PKEY_ED25519        7
 # define SSL_PKEY_ED448          8
-# define SSL_PKEY_KYBER          9
-# define SSL_PKEY_NUM            10
+# define SSL_PKEY_DILITHIUM      9
+# define SSL_PKEY_KYBER          10
+# define SSL_PKEY_NUM            11
 
 /*-
  * SSL_kRSA   <- RSA_ENC
@@ -2055,6 +2061,14 @@ typedef enum downgrade_en {
 
 #define TLSEXT_SIGALG_ed25519                                   0x0807
 #define TLSEXT_SIGALG_ed448                                     0x0808
+
+#define TLSEXT_SIGALG_dilithium_sha1                            0x0204
+#define TLSEXT_SIGALG_dilithium_sha256                          0x0404
+#define TLSEXT_SIGALG_dilithium_sha384                          0x0504
+#define TLSEXT_SIGALG_dilithium_sha512                          0x0604
+#define TLSEXT_SIGALG_dilithium_sha3_256                        0x0704
+#define TLSEXT_SIGALG_dilithium_sha3_384                        0x0804
+#define TLSEXT_SIGALG_dilithium_sha3_512                        0x0904
 
 /* Known PSK key exchange modes */
 #define TLSEXT_KEX_MODE_KE                                      0x00

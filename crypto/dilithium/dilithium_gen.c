@@ -60,9 +60,14 @@ DilithiumParams generate_dilithium_params(const int mode) {
     params.polveck_size_packed = (params.k * params.pol_size_packed);
     params.polvecl_size_packed = (params.l * params.pol_size_packed);
 
-    params.crypto_publickeybytes = (DILITHIUM_SEEDBYTES + params.k*params.polt1_size_packed);
-    params.crypto_secretkeybytes = (2*DILITHIUM_SEEDBYTES + (params.l + params.k)*params.poleta_size_packed + DILITHIUM_CRHBYTES + params.k*params.polt0_size_packed);
-    params.crypto_bytes = (params.l * params.polz_size_packed + (params.omega + params.k) + (DILITHIUM_N/8 + 8));
+    params.crypto_publickeybytes =
+        (DILITHIUM_SEEDBYTES + params.k * params.polt1_size_packed);
+    params.crypto_secretkeybytes =
+        2*DILITHIUM_SEEDBYTES + (params.l + params.k) *
+         params.poleta_size_packed + DILITHIUM_CRHBYTES +
+         params.k * params.polt0_size_packed;
+    params.crypto_bytes = params.l * params.polz_size_packed +
+            (params.omega + params.k) + (DILITHIUM_N/8 + 8);
 
     return params;
 }

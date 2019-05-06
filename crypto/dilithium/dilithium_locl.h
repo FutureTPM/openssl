@@ -76,3 +76,4 @@ int int_dilithium_sign(const unsigned char *m, unsigned int m_len,
              unsigned char *sigret, unsigned int *siglen, const Dilithium *dilithium);
 int int_dilithium_verify(const unsigned char *m, unsigned int m_len,
              const unsigned char *sigbuf, unsigned int siglen, const Dilithium *dilithium);
+int Dilithium_security_bits(const Dilithium *dilithium);

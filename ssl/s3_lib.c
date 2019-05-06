@@ -1209,6 +1209,54 @@ static SSL_CIPHER ssl3_ciphers[] = {
 #if !defined(OPENSSL_NO_KYBER)
     {
      1,
+     TLS1_TXT_KYBER_DILITHIUM_WITH_AES_256_SHA384,
+     TLS1_RFC_KYBER_DILITHIUM_WITH_AES_256_SHA384,
+     TLS1_CK_KYBER_DILITHIUM_WITH_AES_256_SHA384,
+     SSL_kKYBER,
+     SSL_aDILITHIUM,
+     SSL_AES256,
+     SSL_SHA384,
+     TLS1_2_VERSION, TLS1_2_VERSION,
+     DTLS1_2_VERSION, DTLS1_2_VERSION,
+     SSL_HIGH | SSL_FIPS,
+     SSL_HANDSHAKE_MAC_SHA384 | TLS1_PRF_SHA384,
+     256,
+     256,
+     },
+    {
+     1,
+     TLS1_TXT_KYBER_DILITHIUM_WITH_AES_128_GCM_SHA256,
+     TLS1_RFC_KYBER_DILITHIUM_WITH_AES_128_GCM_SHA256,
+     TLS1_CK_KYBER_DILITHIUM_WITH_AES_128_GCM_SHA256,
+     SSL_kKYBER,
+     SSL_aDILITHIUM,
+     SSL_AES128GCM,
+     SSL_AEAD,
+     TLS1_2_VERSION, TLS1_2_VERSION,
+     DTLS1_2_VERSION, DTLS1_2_VERSION,
+     SSL_HIGH | SSL_FIPS,
+     SSL_HANDSHAKE_MAC_SHA256 | TLS1_PRF_SHA256,
+     128,
+     128,
+     },
+    {
+     1,
+     TLS1_TXT_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384,
+     TLS1_RFC_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384,
+     TLS1_CK_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384,
+     SSL_kKYBER,
+     SSL_aDILITHIUM,
+     SSL_AES256GCM,
+     SSL_AEAD,
+     TLS1_2_VERSION, TLS1_2_VERSION,
+     DTLS1_2_VERSION, DTLS1_2_VERSION,
+     SSL_HIGH | SSL_FIPS,
+     SSL_HANDSHAKE_MAC_SHA384 | TLS1_PRF_SHA384,
+     256,
+     256,
+     },
+    {
+     1,
      TLS1_TXT_KYBER_RSA_WITH_AES_256_SHA384,
      TLS1_RFC_KYBER_RSA_WITH_AES_256_SHA384,
      TLS1_CK_KYBER_RSA_WITH_AES_256_SHA384,
@@ -4444,6 +4492,15 @@ int ssl3_get_req_cert_type(SSL *s, WPACKET *pkt)
     if (s->version >= TLS1_VERSION
             && !(alg_a & SSL_aECDSA)
             && !WPACKET_put_bytes_u8(pkt, TLS_CT_ECDSA_SIGN))
+        return 0;
+#endif
+#ifndef OPENSSL_NO_DILITHIUM
+    /*
+     * Dilithium certs can be used with RSA cipher suites too
+     */
+    if (s->version >= TLS1_VERSION
+            && !(alg_a & SSL_aDILITHIUM)
+            && !WPACKET_put_bytes_u8(pkt, TLS_CT_DILITHIUM_SIGN))
         return 0;
 #endif
     return 1;

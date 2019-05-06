@@ -188,6 +188,7 @@ static STRINT_PAIR cert_type_list[] = {
     {"RSA fixed ECDH", TLS_CT_RSA_FIXED_ECDH},
     {"ECDSA fixed ECDH", TLS_CT_ECDSA_FIXED_ECDH},
     {"GOST01 Sign", TLS_CT_GOST01_SIGN},
+    {"Dilithium Sign", TLS_CT_DILITHIUM_SIGN},
     {NULL}
 };
 
@@ -242,6 +243,9 @@ static const char *get_sigtype(int nid)
 
      case NID_id_GostR3410_2012_512:
         return "gost2012_512";
+
+     case EVP_PKEY_DILITHIUM:
+        return "Dilithium";
 
     default:
         return NULL;

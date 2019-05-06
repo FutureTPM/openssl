@@ -50,6 +50,9 @@ typedef unsigned int u_int;
 #ifndef OPENSSL_NO_RSA
 # include <openssl/rsa.h>
 #endif
+#ifndef OPENSSL_NO_DILITHIUM
+# include <openssl/dilithium.h>
+#endif
 #ifndef OPENSSL_NO_SRP
 # include <openssl/srp.h>
 #endif
@@ -1767,7 +1770,7 @@ int s_server_main(int argc, char *argv[])
                 bio_s_out = dup_bio_out(FORMAT_TEXT);
         }
     }
-#if !defined(OPENSSL_NO_RSA) || !defined(OPENSSL_NO_DSA) || !defined(OPENSSL_NO_EC)
+#if !defined(OPENSSL_NO_RSA) || !defined(OPENSSL_NO_DSA) || !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_DILITHIUM)
     if (nocert)
 #endif
     {

@@ -227,12 +227,17 @@ static int dilithium_pkey_check(const EVP_PKEY *pkey)
 
 static int dilithium_size(const EVP_PKEY *pkey)
 {
-    return Dilithium_size(pkey->pkey.dilithium);
+    return Dilithium_sig_size(pkey->pkey.dilithium);
 }
 
 static int dilithium_bits(const EVP_PKEY *pkey)
 {
-    return Dilithium_size(pkey->pkey.dilithium) * 8;
+    return Dilithium_sig_size(pkey->pkey.dilithium) * 8;
+}
+
+static int dilithium_security_bits(const EVP_PKEY *pkey)
+{
+    return Dilithium_security_bits(pkey->pkey.dilithium);
 }
 
 const EVP_PKEY_ASN1_METHOD dilithium_asn1_meth = {
@@ -254,7 +259,7 @@ const EVP_PKEY_ASN1_METHOD dilithium_asn1_meth = {
 
      dilithium_size,
      dilithium_bits,
-     0,
+     dilithium_security_bits,
 
      0, 0, 0, 0, 0, 0, 0,
      int_dilithium_free,

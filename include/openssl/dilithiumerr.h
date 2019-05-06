@@ -48,6 +48,7 @@ int ERR_load_Dilithium_strings(void);
 # define DILITHIUM_F_D2I_DILITHIUMPRIVATEKEY                          193
 # define DILITHIUM_F_I2D_DILITHIUMPUBLICKEY                           195
 # define DILITHIUM_F_D2I_DILITHIUMPUBLICKEY                           196
+# define DILITHIUM_F_PKEY_DILITHIUM_SIGN                              197
 
 /*
  * DILITHIUM reason codes.
@@ -78,5 +79,6 @@ int ERR_load_Dilithium_strings(void);
 # define DILITHIUM_R_MISSING_PRIVATE_KEY                        148
 # define DILITHIUM_R_MISSING_PUBLIC_KEY                         149
 # define DILITHIUM_R_WRONG_SIGNATURE_LENGTH                     164
+# define DILITHIUM_R_BUFFER_TOO_SMALL                           165
 
 #endif

@@ -56,6 +56,8 @@ static const ERR_STRING_DATA DILITHIUM_str_reasons[] = {
     {ERR_PACK(ERR_LIB_DILITHIUM, 0, DILITHIUM_R_UNSUPPORTED_LABEL_SOURCE),
     "unsupported label source"},
     {ERR_PACK(ERR_LIB_DILITHIUM, 0, DILITHIUM_R_VALUE_MISSING), "value missing"},
+    {ERR_PACK(ERR_LIB_DILITHIUM, 0, DILITHIUM_R_BUFFER_TOO_SMALL),
+        "provided buffer for signature is too small"},
     {ERR_PACK(ERR_LIB_DILITHIUM, 0, DILITHIUM_R_WRONG_SIGNATURE_LENGTH), "invalid signature"},
     {0, NULL}
 };

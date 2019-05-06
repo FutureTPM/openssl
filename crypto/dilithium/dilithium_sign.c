@@ -153,7 +153,7 @@ int int_dilithium_verify(const unsigned char *m, unsigned int m_len,
     int ret = 0;
     EVP_MD_CTX *mdctx = NULL;
 
-    if ((siglen - m_len) != (size_t)Dilithium_sig_size(dilithium)) {
+    if ((siglen - m_len) != (size_t)(Dilithium_sig_size(dilithium) - 64)) {
         Dilithiumerr(DILITHIUM_F_INT_DILITHIUM_VERIFY, DILITHIUM_R_WRONG_SIGNATURE_LENGTH);
         return 0;
     }

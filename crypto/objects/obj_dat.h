@@ -10,7 +10,7 @@
  */
 
 /* Serialized OID's */
-static const unsigned char so[7776] = {
+static const unsigned char so[7825] = {
     0x2A,0x86,0x48,0x86,0xF7,0x0D,                 /* [    0] OBJ_rsadsi */
     0x2A,0x86,0x48,0x86,0xF7,0x0D,0x01,            /* [    6] OBJ_pkcs */
     0x2A,0x86,0x48,0x86,0xF7,0x0D,0x02,0x02,       /* [   13] OBJ_md2 */
@@ -1078,9 +1078,16 @@ static const unsigned char so[7776] = {
     0x2A,0x86,0x48,0x86,0xF7,0x0D,0x02,0x0D,       /* [ 7753] OBJ_hmacWithSHA512_256 */
     0x2A,0x86,0x48,0xCE,0x38,0x04,0x04,            /* [ 7761] OBJ_kyber */
     0x2A,0x86,0x48,0xCE,0x38,0x04,0x05,            /* [ 7768] OBJ_dilithium */
+    0x2A,0x86,0x48,0xCE,0x38,0x04,0x06,            /* [ 7775] OBJ_dilithium_with_SHA1 */
+    0x2A,0x86,0x48,0xCE,0x38,0x04,0x07,            /* [ 7782] OBJ_dilithium_with_SHA256 */
+    0x2A,0x86,0x48,0xCE,0x38,0x04,0x08,            /* [ 7789] OBJ_dilithium_with_SHA384 */
+    0x2A,0x86,0x48,0xCE,0x38,0x04,0x09,            /* [ 7796] OBJ_dilithium_with_SHA512 */
+    0x2A,0x86,0x48,0xCE,0x38,0x04,0x0A,            /* [ 7803] OBJ_dilithium_with_SHA3_256 */
+    0x2A,0x86,0x48,0xCE,0x38,0x04,0x0B,            /* [ 7810] OBJ_dilithium_with_SHA3_384 */
+    0x2A,0x86,0x48,0xCE,0x38,0x04,0x0C,            /* [ 7817] OBJ_dilithium_with_SHA3_512 */
 };
 
-#define NUM_NID 1199
+#define NUM_NID 1206
 static const ASN1_OBJECT nid_objs[NUM_NID] = {
     {"UNDEF", "undefined", NID_undef},
     {"rsadsi", "RSA Data Security, Inc.", NID_rsadsi, 6, &so[0]},
@@ -2279,11 +2286,18 @@ static const ASN1_OBJECT nid_objs[NUM_NID] = {
     {"hmacWithSHA512-256", "hmacWithSHA512-256", NID_hmacWithSHA512_256, 8, &so[7753]},
     {"Kyber", "kyber", NID_kyber, 7, &so[7761]},
     {"Dilithium", "dilithium", NID_dilithium, 7, &so[7768]},
+    {"Dilithium-SHA1", "dilithium_with_SHA1", NID_dilithium_with_SHA1, 7, &so[7775]},
+    {"Dilithium-SHA256", "dilithium_with_SHA256", NID_dilithium_with_SHA256, 7, &so[7782]},
+    {"Dilithium-SHA384", "dilithium_with_SHA384", NID_dilithium_with_SHA384, 7, &so[7789]},
+    {"Dilithium-SHA512", "dilithium_with_SHA512", NID_dilithium_with_SHA512, 7, &so[7796]},
+    {"Dilithium-SHA3_256", "dilithium_with_SHA3_256", NID_dilithium_with_SHA3_256, 7, &so[7803]},
+    {"Dilithium-SHA3_384", "dilithium_with_SHA3_384", NID_dilithium_with_SHA3_384, 7, &so[7810]},
+    {"Dilithium-SHA3_512", "dilithium_with_SHA3_512", NID_dilithium_with_SHA3_512, 7, &so[7817]},
     {"KxKyber", "kx-kyber", NID_kx_kyber},
     {"AuthDilithium", "auth-dilithium", NID_auth_dilithium},
 };
 
-#define NUM_SN 1190
+#define NUM_SN 1197
 static const unsigned int sn_objs[NUM_SN] = {
      364,    /* "AD_DVCS" */
      419,    /* "AES-128-CBC" */
@@ -2347,7 +2361,7 @@ static const unsigned int sn_objs[NUM_SN] = {
     1078,    /* "ARIA-256-OFB" */
     1064,    /* "AuthANY" */
     1049,    /* "AuthDSS" */
-    1198,    /* "AuthDilithium" */
+    1205,    /* "AuthDilithium" */
     1047,    /* "AuthECDSA" */
     1050,    /* "AuthGOST01" */
     1051,    /* "AuthGOST12" */
@@ -2430,6 +2444,13 @@ static const unsigned int sn_objs[NUM_SN] = {
       67,    /* "DSA-old" */
      297,    /* "DVCS" */
     1196,    /* "Dilithium" */
+    1197,    /* "Dilithium-SHA1" */
+    1198,    /* "Dilithium-SHA256" */
+    1199,    /* "Dilithium-SHA384" */
+    1201,    /* "Dilithium-SHA3_256" */
+    1202,    /* "Dilithium-SHA3_384" */
+    1203,    /* "Dilithium-SHA3_512" */
+    1200,    /* "Dilithium-SHA512" */
     1087,    /* "ED25519" */
     1088,    /* "ED448" */
       99,    /* "GN" */
@@ -2456,7 +2477,7 @@ static const unsigned int sn_objs[NUM_SN] = {
     1038,    /* "KxECDHE" */
     1040,    /* "KxECDHE-PSK" */
     1045,    /* "KxGOST" */
-    1197,    /* "KxKyber" */
+    1204,    /* "KxKyber" */
     1043,    /* "KxPSK" */
     1037,    /* "KxRSA" */
     1042,    /* "KxRSA_PSK" */
@@ -3477,7 +3498,7 @@ static const unsigned int sn_objs[NUM_SN] = {
     1093,    /* "x509ExtAdmission" */
 };
 
-#define NUM_LN 1190
+#define NUM_LN 1197
 static const unsigned int ln_objs[NUM_LN] = {
      363,    /* "AD Time Stamping" */
      405,    /* "ANSI X9.62" */
@@ -3762,7 +3783,7 @@ static const unsigned int ln_objs[NUM_LN] = {
      485,    /* "associatedName" */
      501,    /* "audio" */
     1064,    /* "auth-any" */
-    1198,    /* "auth-dilithium" */
+    1205,    /* "auth-dilithium" */
     1049,    /* "auth-dss" */
     1047,    /* "auth-ecdsa" */
     1050,    /* "auth-gost01" */
@@ -3913,6 +3934,13 @@ static const unsigned int ln_objs[NUM_LN] = {
      939,    /* "dhSinglePass-stdDH-sha384kdf-scheme" */
      940,    /* "dhSinglePass-stdDH-sha512kdf-scheme" */
     1196,    /* "dilithium" */
+    1197,    /* "dilithium_with_SHA1" */
+    1198,    /* "dilithium_with_SHA256" */
+    1199,    /* "dilithium_with_SHA384" */
+    1201,    /* "dilithium_with_SHA3_256" */
+    1202,    /* "dilithium_with_SHA3_384" */
+    1203,    /* "dilithium_with_SHA3_512" */
+    1200,    /* "dilithium_with_SHA512" */
       11,    /* "directory services (X.500)" */
      378,    /* "directory services - algorithms" */
      887,    /* "distinguishedName" */
@@ -4280,7 +4308,7 @@ static const unsigned int ln_objs[NUM_LN] = {
     1038,    /* "kx-ecdhe" */
     1040,    /* "kx-ecdhe-psk" */
     1045,    /* "kx-gost" */
-    1197,    /* "kx-kyber" */
+    1204,    /* "kx-kyber" */
     1043,    /* "kx-psk" */
     1037,    /* "kx-rsa" */
     1042,    /* "kx-rsa-psk" */
@@ -4671,7 +4699,7 @@ static const unsigned int ln_objs[NUM_LN] = {
      125,    /* "zlib compression" */
 };
 
-#define NUM_OBJ 1073
+#define NUM_OBJ 1080
 static const unsigned int obj_objs[NUM_OBJ] = {
        0,    /* OBJ_undef                        0 */
      181,    /* OBJ_iso                          1 */
@@ -5084,6 +5112,13 @@ static const unsigned int obj_objs[NUM_OBJ] = {
      113,    /* OBJ_dsaWithSHA1                  1 2 840 10040 4 3 */
     1195,    /* OBJ_kyber                        1 2 840 10040 4 4 */
     1196,    /* OBJ_dilithium                    1 2 840 10040 4 5 */
+    1197,    /* OBJ_dilithium_with_SHA1          1 2 840 10040 4 6 */
+    1198,    /* OBJ_dilithium_with_SHA256        1 2 840 10040 4 7 */
+    1199,    /* OBJ_dilithium_with_SHA384        1 2 840 10040 4 8 */
+    1200,    /* OBJ_dilithium_with_SHA512        1 2 840 10040 4 9 */
+    1201,    /* OBJ_dilithium_with_SHA3_256      1 2 840 10040 4 10 */
+    1202,    /* OBJ_dilithium_with_SHA3_384      1 2 840 10040 4 11 */
+    1203,    /* OBJ_dilithium_with_SHA3_512      1 2 840 10040 4 12 */
      406,    /* OBJ_X9_62_prime_field            1 2 840 10045 1 1 */
      407,    /* OBJ_X9_62_characteristic_two_field 1 2 840 10045 1 2 */
      408,    /* OBJ_X9_62_id_ecPublicKey         1 2 840 10045 2 1 */

@@ -672,6 +672,15 @@ static const uint16_t tls12_sigalgs[] = {
     TLSEXT_SIGALG_gostr34102012_512_gostr34112012_512,
     TLSEXT_SIGALG_gostr34102001_gostr3411,
 #endif
+#ifndef OPENSSL_NO_DILITHIUM
+    TLSEXT_SIGALG_dilithium_sha3_256,
+    TLSEXT_SIGALG_dilithium_sha3_384,
+    TLSEXT_SIGALG_dilithium_sha3_512,
+    TLSEXT_SIGALG_dilithium_sha256,
+    TLSEXT_SIGALG_dilithium_sha384,
+    TLSEXT_SIGALG_dilithium_sha512,
+    TLSEXT_SIGALG_dilithium_sha1,
+#endif
 };
 
 #ifndef OPENSSL_NO_EC
@@ -767,7 +776,30 @@ static const SIGALG_LOOKUP sigalg_lookup_tbl[] = {
     {NULL, TLSEXT_SIGALG_gostr34102001_gostr3411,
      NID_id_GostR3411_94, SSL_MD_GOST94_IDX,
      NID_id_GostR3410_2001, SSL_PKEY_GOST01,
-     NID_undef, NID_undef}
+     NID_undef, NID_undef},
+#endif
+#ifndef OPENSSL_NO_DILITHIUM
+    {"dilithium_with_sha3_256", TLSEXT_SIGALG_dilithium_sha3_256,
+     NID_sha3_256, SSL_MD_SHA3_256_IDX, EVP_PKEY_DILITHIUM, SSL_PKEY_DILITHIUM,
+     NID_dilithium_with_SHA3_256, NID_undef},
+    {"dilithium_with_sha3_384", TLSEXT_SIGALG_dilithium_sha3_384,
+     NID_sha3_384, SSL_MD_SHA3_384_IDX, EVP_PKEY_DILITHIUM, SSL_PKEY_DILITHIUM,
+     NID_dilithium_with_SHA3_384, NID_undef},
+    {"dilithium_with_sha3_512", TLSEXT_SIGALG_dilithium_sha3_512,
+     NID_sha3_512, SSL_MD_SHA3_512_IDX, EVP_PKEY_DILITHIUM, SSL_PKEY_DILITHIUM,
+     NID_dilithium_with_SHA3_512, NID_undef},
+    {"dilithium_with_sha256", TLSEXT_SIGALG_dilithium_sha256,
+     NID_sha256, SSL_MD_SHA256_IDX, EVP_PKEY_DILITHIUM, SSL_PKEY_DILITHIUM,
+     NID_dilithium_with_SHA256, NID_undef},
+    {"dilithium_with_sha384", TLSEXT_SIGALG_dilithium_sha384,
+     NID_sha384, SSL_MD_SHA384_IDX, EVP_PKEY_DILITHIUM, SSL_PKEY_DILITHIUM,
+     NID_dilithium_with_SHA384, NID_undef},
+    {"dilithium_with_sha512", TLSEXT_SIGALG_dilithium_sha512,
+     NID_sha512, SSL_MD_SHA512_IDX, EVP_PKEY_DILITHIUM, SSL_PKEY_DILITHIUM,
+     NID_dilithium_with_SHA512, NID_undef},
+    {"dilithium_with_sha1", TLSEXT_SIGALG_dilithium_sha1,
+     NID_sha1, SSL_MD_SHA1_IDX, EVP_PKEY_DILITHIUM, SSL_PKEY_DILITHIUM,
+     NID_dilithium_with_SHA1, NID_undef},
 #endif
 };
 /* Legacy sigalgs for TLS < 1.2 RSA TLS signatures */
@@ -792,6 +824,7 @@ static const uint16_t tls_default_sigalg[] = {
     TLSEXT_SIGALG_gostr34102012_512_gostr34112012_512, /* SSL_PKEY_GOST12_512 */
     0, /* SSL_PKEY_ED25519 */
     0, /* SSL_PKEY_ED448 */
+    TLSEXT_SIGALG_dilithium_sha3_256, /* SSL_PKEY_DILITHIUM */
 };
 
 /* Lookup TLS signature algorithm */
@@ -2214,6 +2247,11 @@ int tls1_check_chain(SSL *s, X509 *x, EVP_PKEY *pk, STACK_OF(X509) *chain,
                 default_nid = NID_id_tc26_signwithdigest_gost3410_2012_512;
                 break;
 
+            case SSL_PKEY_DILITHIUM:
+                rsign = EVP_PKEY_DILITHIUM;
+                default_nid = NID_dilithium_with_SHA1;
+                break;
+
             default:
                 default_nid = -1;
                 break;
@@ -2294,6 +2332,9 @@ int tls1_check_chain(SSL *s, X509 *x, EVP_PKEY *pk, STACK_OF(X509) *chain,
         case EVP_PKEY_EC:
             check_type = TLS_CT_ECDSA_SIGN;
             break;
+        case EVP_PKEY_DILITHIUM:
+            check_type = TLS_CT_DILITHIUM_SIGN;
+            break;
         }
         if (check_type) {
             const uint8_t *ctypes = s->s3->tmp.ctype;
@@ -2372,6 +2413,7 @@ void tls1_set_cert_validity(SSL *s)
     tls1_check_chain(s, NULL, NULL, NULL, SSL_PKEY_GOST12_512);
     tls1_check_chain(s, NULL, NULL, NULL, SSL_PKEY_ED25519);
     tls1_check_chain(s, NULL, NULL, NULL, SSL_PKEY_ED448);
+    tls1_check_chain(s, NULL, NULL, NULL, SSL_PKEY_DILITHIUM);
 }
 
 /* User level utility function to check a chain is suitable */

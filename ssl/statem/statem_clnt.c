@@ -1777,7 +1777,7 @@ static MSG_PROCESS_RETURN tls_process_as_hello_retry_request(SSL *s,
     extensions = NULL;
 
     if (s->ext.tls13_cookie_len == 0
-#if !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_DH)
+#if !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_DH) || !defined(OPENSSL_NO_KYBER)
         && s->s3->tmp.pkey != NULL
 #endif
         ) {
@@ -2316,6 +2316,8 @@ static int tls_process_ske_kyber(SSL *s, PACKET *pkt, EVP_PKEY **pkey)
         *pkey = X509_get0_pubkey(s->session->peer);
     else if (s->s3->tmp.new_cipher->algorithm_auth & SSL_aRSA)
         *pkey = X509_get0_pubkey(s->session->peer);
+    else if (s->s3->tmp.new_cipher->algorithm_auth & SSL_aDILITHIUM)
+        *pkey = X509_get0_pubkey(s->session->peer);
     /* else anonymous Kyber, so no certificate or pkey. */
 
     return 1;
@@ -2338,7 +2340,7 @@ MSG_PROCESS_RETURN tls_process_key_exchange(SSL *s, PACKET *pkt)
 
     save_param_start = *pkt;
 
-#if !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_DH)
+#if !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_DH) || !defined(OPENSSL_NO_KYBER)
     EVP_PKEY_free(s->s3->peer_tmp);
     s->s3->peer_tmp = NULL;
 #endif

@@ -85,6 +85,7 @@ extern "C" {
 # define SSL_TXT_kSRP            "kSRP"
 
 # define SSL_TXT_aRSA            "aRSA"
+# define SSL_TXT_aDILITHIUM      "aDILITHIUM"
 # define SSL_TXT_aDSS            "aDSS"
 # define SSL_TXT_aDH             "aDH"/* this cipher class has been removed */
 # define SSL_TXT_aECDH           "aECDH"/* this cipher class has been removed */

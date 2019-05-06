@@ -48,7 +48,14 @@ X9cm 3			: DSA-SHA1		: dsaWithSHA1
 X9cm 4			: Kyber			: kyber
 
 !Cname dilithium
-X9cm 5			: Dilithium			: dilithium
+X9cm 5			: Dilithium			 : dilithium
+X9cm 6			: Dilithium-SHA1     : dilithium_with_SHA1
+X9cm 7			: Dilithium-SHA256   : dilithium_with_SHA256
+X9cm 8			: Dilithium-SHA384   : dilithium_with_SHA384
+X9cm 9			: Dilithium-SHA512   : dilithium_with_SHA512
+X9cm 10			: Dilithium-SHA3_256 : dilithium_with_SHA3_256
+X9cm 11			: Dilithium-SHA3_384 : dilithium_with_SHA3_384
+X9cm 12			: Dilithium-SHA3_512 : dilithium_with_SHA3_512
 
 ISO-US 10045		: ansi-X9-62		: ANSI X9.62
 !module X9-62

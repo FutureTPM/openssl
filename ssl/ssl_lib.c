@@ -3240,6 +3240,9 @@ void ssl_set_masks(SSL *s)
 #ifndef OPENSSL_NO_EC
     int have_ecc_cert, ecdsa_ok;
 #endif
+#ifndef OPENSSL_NO_DILITHIUM
+    int dilithium_sign;
+#endif
     if (c == NULL)
         return;
 
@@ -3255,12 +3258,27 @@ void ssl_set_masks(SSL *s)
 #ifndef OPENSSL_NO_EC
     have_ecc_cert = pvalid[SSL_PKEY_ECC] & CERT_PKEY_VALID;
 #endif
+#ifndef OPENSSL_NO_DILITHIUM
+    dilithium_sign = pvalid[SSL_PKEY_DILITHIUM] & CERT_PKEY_VALID;
+#endif
     mask_k = 0;
     mask_a = 0;
 
 #ifdef CIPHER_DEBUG
     fprintf(stderr, "dht=%d re=%d rs=%d ds=%d\n",
             dh_tmp, rsa_enc, rsa_sign, dsa_sign);
+#endif
+
+#ifndef OPENSSL_NO_DILITHIUM
+    /*
+     * Allow Dilithium for TLS >= 1.2 if the peer allows it and the current
+     * certificate is a Dilithium certificate
+     */
+    if (ssl_has_cert(s, SSL_PKEY_DILITHIUM) && dilithium_sign
+            && pvalid[SSL_PKEY_DILITHIUM] & CERT_PKEY_EXPLICIT_SIGN
+            && TLS1_get_version(s) == TLS1_2_VERSION) {
+        mask_a |= SSL_aDILITHIUM;
+    }
 #endif
 
 #ifndef OPENSSL_NO_GOST

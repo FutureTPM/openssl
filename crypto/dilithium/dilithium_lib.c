@@ -245,3 +245,19 @@ size_t dilithium_copy_pub(const Dilithium *key, unsigned char **pbuf)
     *pbuf = buf;
     return key->public_key_size;
 }
+
+int Dilithium_security_bits(const Dilithium *dilithium)
+{
+    switch (dilithium->mode) {
+        case 1:
+            return 68;
+        case 2:
+            return 103;
+        case 3:
+            return 138;
+        case 4:
+            return 176;
+        default:
+            return 0;
+    }
+}
