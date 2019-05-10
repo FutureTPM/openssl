@@ -56,8 +56,10 @@ static int kyber_ossl_public_encrypt(int flen, const uint8_t *from,
         return ret;
 
     // Copy cipher text and shared secret to out
-    memmove(to, ss, 32);
-    memmove(to + 32, ct, ret);
+    if (to != NULL) {
+        memmove(to, ss, 32);
+        memmove(to + 32, ct, ret);
+    }
     OPENSSL_free(ct); // free @1
 
     return 32 + ret;
