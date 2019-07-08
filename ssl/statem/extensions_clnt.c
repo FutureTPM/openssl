@@ -594,40 +594,42 @@ static int add_key_share(SSL *s, WPACKET *pkt, unsigned int curve_id)
      * We prefer to use a QR key exchange rather than ECDHE if the server
      * supports it.
      */
-    if (s->s3->tmp.kyber_pkey != NULL) {
-        if (!ossl_assert(s->hello_retry_request == SSL_HRR_PENDING)) {
+    if ((s->ctx->options & 0x1) == 0) {
+        if (s->s3->tmp.kyber_pkey != NULL) {
+            if (!ossl_assert(s->hello_retry_request == SSL_HRR_PENDING)) {
+                SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_ADD_KEY_SHARE,
+                         ERR_R_INTERNAL_ERROR);
+                return 0;
+            }
+            /*
+             * Could happen if we got an HRR that wasn't requesting a new key_share
+             */
+            kyber_key_share_key = s->s3->tmp.kyber_pkey;
+        } else {
+            kyber_key_share_key = ssl_generate_pkey_kyber(s);
+            if (kyber_key_share_key == NULL) {
+                /* SSLfatal() already called */
+                return 0;
+            }
+        }
+
+        /* Read the public key. */
+        pk_size = EVP_PKEY_get1_tls_kyber_pk(kyber_key_share_key, &pk);
+        if (pk_size == 0) {
+            SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_ADD_KEY_SHARE, ERR_R_KYBER_LIB);
+            goto err;
+        }
+
+        /* Create KeyShareEntry */
+        if (!WPACKET_put_bytes_u16(pkt, KYBER_KEX_CODE)
+                || !WPACKET_sub_memcpy_u16(pkt, pk, pk_size)) {
             SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_ADD_KEY_SHARE,
                      ERR_R_INTERNAL_ERROR);
-            return 0;
+            goto err;
         }
-        /*
-         * Could happen if we got an HRR that wasn't requesting a new key_share
-         */
-        kyber_key_share_key = s->s3->tmp.kyber_pkey;
-    } else {
-        kyber_key_share_key = ssl_generate_pkey_kyber(s);
-        if (kyber_key_share_key == NULL) {
-            /* SSLfatal() already called */
-            return 0;
-        }
-    }
 
-    /* Read the public key. */
-    pk_size = EVP_PKEY_get1_tls_kyber_pk(kyber_key_share_key, &pk);
-    if (pk_size == 0) {
-        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_ADD_KEY_SHARE, ERR_R_KYBER_LIB);
-        goto err;
+        s->s3->tmp.kyber_pkey = kyber_key_share_key;
     }
-
-    /* Create KeyShareEntry */
-    if (!WPACKET_put_bytes_u16(pkt, KYBER_KEX_CODE)
-            || !WPACKET_sub_memcpy_u16(pkt, pk, pk_size)) {
-        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_ADD_KEY_SHARE,
-                 ERR_R_INTERNAL_ERROR);
-        goto err;
-    }
-
-    s->s3->tmp.kyber_pkey = kyber_key_share_key;
 
     /*
      * Handle ECDHE key
@@ -1826,12 +1828,12 @@ int tls_parse_stoc_key_share(SSL *s, PACKET *pkt, unsigned int context, X509 *x,
                              size_t chainidx)
 {
 #ifndef OPENSSL_NO_TLS1_3
-    unsigned char pms[32];
+    unsigned char pms[4096];
     PACKET data;
     EVP_PKEY *ckey = NULL, *skey = NULL;
     EVP_PKEY_CTX *pctx = NULL;
     unsigned int key_type;
-    size_t pmslen = 32;
+    size_t pmslen = 4096;
 
     /* Sanity check */
     if (s->s3->peer_tmp != NULL) {

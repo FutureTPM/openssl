@@ -940,7 +940,7 @@ else
 fi
 
 if [ "$OUT" = "darwin64-x86_64-cc" ]; then
-    echo "WARNING! If you wish to build 32-bit libraries, then you have to"
+    echo "WARNING! If you wish to build 32-bit libraries,then you have to"
     echo "         invoke 'KERNEL_BITS=32 $THERE/config $options'."
 fi
 )

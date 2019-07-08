@@ -8,9 +8,9 @@
  */
 
 #ifndef HEADER_SSLTESTLIB_H
-# define HEADER_SSLTESTLIB_H
+#define HEADER_SSLTESTLIB_H
 
-# include <openssl/ssl.h>
+#include <openssl/ssl.h>
 
 int create_ssl_ctx_pair(const SSL_METHOD *sm, const SSL_METHOD *cm,
                         int min_proto_version, int max_proto_version,
@@ -31,17 +31,17 @@ const BIO_METHOD *bio_s_mempacket_test(void);
 void bio_s_mempacket_test_free(void);
 
 /* Packet types - value 0 is reserved */
-#define INJECT_PACKET                   1
-#define INJECT_PACKET_IGNORE_REC_SEQ    2
+#define INJECT_PACKET 1
+#define INJECT_PACKET_IGNORE_REC_SEQ 2
 
 /*
  * Mempacket BIO ctrls. We make them large enough to not clash with standard BIO
  * ctrl codes.
  */
-#define MEMPACKET_CTRL_SET_DROP_EPOCH       (1 << 15)
-#define MEMPACKET_CTRL_SET_DROP_REC         (2 << 15)
-#define MEMPACKET_CTRL_GET_DROP_REC         (3 << 15)
-#define MEMPACKET_CTRL_SET_DUPLICATE_REC    (4 << 15)
+#define MEMPACKET_CTRL_SET_DROP_EPOCH (1 << 15)
+#define MEMPACKET_CTRL_SET_DROP_REC (2 << 15)
+#define MEMPACKET_CTRL_GET_DROP_REC (3 << 15)
+#define MEMPACKET_CTRL_SET_DUPLICATE_REC (4 << 15)
 
 int mempacket_test_inject(BIO *bio, const char *in, int inl, int pktnum,
                           int type);

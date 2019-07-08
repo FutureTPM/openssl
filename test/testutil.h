@@ -8,13 +8,13 @@
  */
 
 #ifndef HEADER_TESTUTIL_H
-# define HEADER_TESTUTIL_H
+#define HEADER_TESTUTIL_H
 
 #include <stdarg.h>
 
-#include <openssl/err.h>
-#include <openssl/e_os2.h>
 #include <openssl/bn.h>
+#include <openssl/e_os2.h>
+#include <openssl/err.h>
 
 /*-
  * Simple unit tests should implement setup_tests().
@@ -45,18 +45,18 @@
  */
 
 /* Adds a simple test case. */
-# define ADD_TEST(test_function) add_test(#test_function, test_function)
+#define ADD_TEST(test_function) add_test(#test_function, test_function)
 
 /*
  * Simple parameterized tests. Calls test_function(idx) for each 0 <= idx < num.
  */
-# define ADD_ALL_TESTS(test_function, num) \
-    add_all_tests(#test_function, test_function, num, 1)
+#define ADD_ALL_TESTS(test_function, num)                                      \
+  add_all_tests(#test_function, test_function, num, 1)
 /*
  * A variant of the same without TAP output.
  */
-# define ADD_ALL_TESTS_NOSUBTEST(test_function, num) \
-    add_all_tests(#test_function, test_function, num, 0)
+#define ADD_ALL_TESTS_NOSUBTEST(test_function, num)                            \
+  add_all_tests(#test_function, test_function, num, 0)
 
 /*-
  * Test cases that share common setup should use the helper
@@ -91,31 +91,31 @@
  *      EXECUTE_FOOBAR_TEST();
  *      }
  */
-# define SETUP_TEST_FIXTURE(TEST_FIXTURE_TYPE, set_up)\
-    TEST_FIXTURE_TYPE *fixture = set_up(TEST_CASE_NAME); \
-    int result = 0
+#define SETUP_TEST_FIXTURE(TEST_FIXTURE_TYPE, set_up)                          \
+  TEST_FIXTURE_TYPE *fixture = set_up(TEST_CASE_NAME);                         \
+  int result = 0
 
-# define EXECUTE_TEST(execute_func, tear_down)\
-    if (fixture != NULL) {\
-        result = execute_func(fixture);\
-        tear_down(fixture);\
-    }
+#define EXECUTE_TEST(execute_func, tear_down)                                  \
+  if (fixture != NULL) {                                                       \
+    result = execute_func(fixture);                                            \
+    tear_down(fixture);                                                        \
+  }
 
 /*
  * TEST_CASE_NAME is defined as the name of the test case function where
  * possible; otherwise we get by with the file name and line number.
  */
-# if !defined(__STDC_VERSION__) || __STDC_VERSION__ < 199901L
-#  if defined(_MSC_VER)
-#   define TEST_CASE_NAME __FUNCTION__
-#  else
-#   define testutil_stringify_helper(s) #s
-#   define testutil_stringify(s) testutil_stringify_helper(s)
-#   define TEST_CASE_NAME __FILE__ ":" testutil_stringify(__LINE__)
-#  endif                        /* _MSC_VER */
-# else
-#  define TEST_CASE_NAME __func__
-# endif                         /* __STDC_VERSION__ */
+#if !defined(__STDC_VERSION__) || __STDC_VERSION__ < 199901L
+#if defined(_MSC_VER)
+#define TEST_CASE_NAME __FUNCTION__
+#else
+#define testutil_stringify_helper(s) #s
+#define testutil_stringify(s) testutil_stringify_helper(s)
+#define TEST_CASE_NAME __FILE__ ":" testutil_stringify(__LINE__)
+#endif /* _MSC_VER */
+#else
+#define TEST_CASE_NAME __func__
+#endif /* __STDC_VERSION__ */
 
 /*
  * Tests that need access to command line arguments should use the functions:
@@ -139,7 +139,7 @@ const char *test_get_option_argument(const char *option);
  * rather link to one of the helper main() methods.
  */
 
-void add_test(const char *test_case_name, int (*test_fn) (void));
+void add_test(const char *test_case_name, int (*test_fn)(void));
 void add_all_tests(const char *test_case_name, int (*test_fn)(int idx), int num,
                    int subtest);
 
@@ -157,28 +157,27 @@ void cleanup_tests(void);
 
 #define PRINTF_FORMAT(a, b)
 #if defined(__GNUC__) && defined(__STDC_VERSION__)
-  /*
-   * Because we support the 'z' modifier, which made its appearance in C99,
-   * we can't use __attribute__ with pre C99 dialects.
-   */
-# if __STDC_VERSION__ >= 199901L
-#  undef PRINTF_FORMAT
-#  define PRINTF_FORMAT(a, b)   __attribute__ ((format(printf, a, b)))
-# endif
+/*
+ * Because we support the 'z' modifier, which made its appearance in C99,
+ * we can't use __attribute__ with pre C99 dialects.
+ */
+#if __STDC_VERSION__ >= 199901L
+#undef PRINTF_FORMAT
+#define PRINTF_FORMAT(a, b) __attribute__((format(printf, a, b)))
+#endif
 #endif
 
-# define DECLARE_COMPARISON(type, name, opname)                         \
-    int test_ ## name ## _ ## opname(const char *, int,                 \
-                                     const char *, const char *,        \
-                                     const type, const type);
+#define DECLARE_COMPARISON(type, name, opname)                                 \
+  int test_##name##_##opname(const char *, int, const char *, const char *,    \
+                             const type, const type);
 
-# define DECLARE_COMPARISONS(type, name)                                \
-    DECLARE_COMPARISON(type, name, eq)                                  \
-    DECLARE_COMPARISON(type, name, ne)                                  \
-    DECLARE_COMPARISON(type, name, lt)                                  \
-    DECLARE_COMPARISON(type, name, le)                                  \
-    DECLARE_COMPARISON(type, name, gt)                                  \
-    DECLARE_COMPARISON(type, name, ge)
+#define DECLARE_COMPARISONS(type, name)                                        \
+  DECLARE_COMPARISON(type, name, eq)                                           \
+  DECLARE_COMPARISON(type, name, ne)                                           \
+  DECLARE_COMPARISON(type, name, lt)                                           \
+  DECLARE_COMPARISON(type, name, le)                                           \
+  DECLARE_COMPARISON(type, name, gt)                                           \
+  DECLARE_COMPARISON(type, name, ge)
 
 DECLARE_COMPARISONS(int, int)
 DECLARE_COMPARISONS(unsigned int, uint)
@@ -191,9 +190,9 @@ DECLARE_COMPARISONS(time_t, time_t)
  * Because this comparison uses a printf format specifier that's not
  * universally known (yet), we provide an option to not have it declared.
  */
-# ifndef TESTUTIL_NO_size_t_COMPARISON
+#ifndef TESTUTIL_NO_size_t_COMPARISON
 DECLARE_COMPARISONS(size_t, size_t)
-# endif
+#endif
 
 /*
  * Pointer comparisons against other pointers and null.
@@ -229,10 +228,10 @@ int test_strn_ne(const char *file, int line, const char *, const char *,
  * Otherwise, they return 0 and pretty-print diagnostics.
  * These should not be called directly, use the TEST_xxx macros below instead.
  */
-int test_mem_eq(const char *, int, const char *, const char *,
-                const void *, size_t, const void *, size_t);
-int test_mem_ne(const char *, int, const char *, const char *,
-                const void *, size_t, const void *, size_t);
+int test_mem_eq(const char *, int, const char *, const char *, const void *,
+                size_t, const void *, size_t);
+int test_mem_ne(const char *, int, const char *, const char *, const void *,
+                size_t, const void *, size_t);
 
 /*
  * Check a boolean result for being true or false.
@@ -288,110 +287,113 @@ void test_perror(const char *s);
  *      ptr = OPENSSL_malloc(..);
  *      if (!TEST_ptr(ptr))
  */
-# define TEST_int_eq(a, b)    test_int_eq(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_int_ne(a, b)    test_int_ne(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_int_lt(a, b)    test_int_lt(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_int_le(a, b)    test_int_le(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_int_gt(a, b)    test_int_gt(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_int_ge(a, b)    test_int_ge(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_int_eq(a, b) test_int_eq(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_int_ne(a, b) test_int_ne(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_int_lt(a, b) test_int_lt(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_int_le(a, b) test_int_le(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_int_gt(a, b) test_int_gt(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_int_ge(a, b) test_int_ge(__FILE__, __LINE__, #a, #b, a, b)
 
-# define TEST_uint_eq(a, b)   test_uint_eq(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_uint_ne(a, b)   test_uint_ne(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_uint_lt(a, b)   test_uint_lt(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_uint_le(a, b)   test_uint_le(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_uint_gt(a, b)   test_uint_gt(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_uint_ge(a, b)   test_uint_ge(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_uint_eq(a, b) test_uint_eq(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_uint_ne(a, b) test_uint_ne(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_uint_lt(a, b) test_uint_lt(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_uint_le(a, b) test_uint_le(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_uint_gt(a, b) test_uint_gt(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_uint_ge(a, b) test_uint_ge(__FILE__, __LINE__, #a, #b, a, b)
 
-# define TEST_char_eq(a, b)   test_char_eq(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_char_ne(a, b)   test_char_ne(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_char_lt(a, b)   test_char_lt(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_char_le(a, b)   test_char_le(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_char_gt(a, b)   test_char_gt(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_char_ge(a, b)   test_char_ge(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_char_eq(a, b) test_char_eq(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_char_ne(a, b) test_char_ne(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_char_lt(a, b) test_char_lt(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_char_le(a, b) test_char_le(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_char_gt(a, b) test_char_gt(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_char_ge(a, b) test_char_ge(__FILE__, __LINE__, #a, #b, a, b)
 
-# define TEST_uchar_eq(a, b)  test_uchar_eq(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_uchar_ne(a, b)  test_uchar_ne(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_uchar_lt(a, b)  test_uchar_lt(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_uchar_le(a, b)  test_uchar_le(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_uchar_gt(a, b)  test_uchar_gt(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_uchar_ge(a, b)  test_uchar_ge(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_uchar_eq(a, b) test_uchar_eq(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_uchar_ne(a, b) test_uchar_ne(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_uchar_lt(a, b) test_uchar_lt(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_uchar_le(a, b) test_uchar_le(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_uchar_gt(a, b) test_uchar_gt(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_uchar_ge(a, b) test_uchar_ge(__FILE__, __LINE__, #a, #b, a, b)
 
-# define TEST_long_eq(a, b)   test_long_eq(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_long_ne(a, b)   test_long_ne(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_long_lt(a, b)   test_long_lt(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_long_le(a, b)   test_long_le(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_long_gt(a, b)   test_long_gt(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_long_ge(a, b)   test_long_ge(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_long_eq(a, b) test_long_eq(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_long_ne(a, b) test_long_ne(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_long_lt(a, b) test_long_lt(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_long_le(a, b) test_long_le(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_long_gt(a, b) test_long_gt(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_long_ge(a, b) test_long_ge(__FILE__, __LINE__, #a, #b, a, b)
 
-# define TEST_ulong_eq(a, b)  test_ulong_eq(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_ulong_ne(a, b)  test_ulong_ne(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_ulong_lt(a, b)  test_ulong_lt(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_ulong_le(a, b)  test_ulong_le(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_ulong_gt(a, b)  test_ulong_gt(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_ulong_ge(a, b)  test_ulong_ge(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_ulong_eq(a, b) test_ulong_eq(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_ulong_ne(a, b) test_ulong_ne(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_ulong_lt(a, b) test_ulong_lt(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_ulong_le(a, b) test_ulong_le(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_ulong_gt(a, b) test_ulong_gt(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_ulong_ge(a, b) test_ulong_ge(__FILE__, __LINE__, #a, #b, a, b)
 
-# define TEST_size_t_eq(a, b) test_size_t_eq(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_size_t_ne(a, b) test_size_t_ne(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_size_t_lt(a, b) test_size_t_lt(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_size_t_le(a, b) test_size_t_le(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_size_t_gt(a, b) test_size_t_gt(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_size_t_ge(a, b) test_size_t_ge(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_size_t_eq(a, b) test_size_t_eq(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_size_t_ne(a, b) test_size_t_ne(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_size_t_lt(a, b) test_size_t_lt(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_size_t_le(a, b) test_size_t_le(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_size_t_gt(a, b) test_size_t_gt(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_size_t_ge(a, b) test_size_t_ge(__FILE__, __LINE__, #a, #b, a, b)
 
-# define TEST_time_t_eq(a, b) test_time_t_eq(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_time_t_ne(a, b) test_time_t_ne(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_time_t_lt(a, b) test_time_t_lt(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_time_t_le(a, b) test_time_t_le(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_time_t_gt(a, b) test_time_t_gt(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_time_t_ge(a, b) test_time_t_ge(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_time_t_eq(a, b) test_time_t_eq(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_time_t_ne(a, b) test_time_t_ne(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_time_t_lt(a, b) test_time_t_lt(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_time_t_le(a, b) test_time_t_le(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_time_t_gt(a, b) test_time_t_gt(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_time_t_ge(a, b) test_time_t_ge(__FILE__, __LINE__, #a, #b, a, b)
 
-# define TEST_ptr_eq(a, b)    test_ptr_eq(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_ptr_ne(a, b)    test_ptr_ne(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_ptr(a)          test_ptr(__FILE__, __LINE__, #a, a)
-# define TEST_ptr_null(a)     test_ptr_null(__FILE__, __LINE__, #a, a)
+#define TEST_ptr_eq(a, b) test_ptr_eq(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_ptr_ne(a, b) test_ptr_ne(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_ptr(a) test_ptr(__FILE__, __LINE__, #a, a)
+#define TEST_ptr_null(a) test_ptr_null(__FILE__, __LINE__, #a, a)
 
-# define TEST_str_eq(a, b)    test_str_eq(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_str_ne(a, b)    test_str_ne(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_strn_eq(a, b, n) test_strn_eq(__FILE__, __LINE__, #a, #b, a, b, n)
-# define TEST_strn_ne(a, b, n) test_strn_ne(__FILE__, __LINE__, #a, #b, a, b, n)
+#define TEST_str_eq(a, b) test_str_eq(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_str_ne(a, b) test_str_ne(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_strn_eq(a, b, n) test_strn_eq(__FILE__, __LINE__, #a, #b, a, b, n)
+#define TEST_strn_ne(a, b, n) test_strn_ne(__FILE__, __LINE__, #a, #b, a, b, n)
 
-# define TEST_mem_eq(a, m, b, n) test_mem_eq(__FILE__, __LINE__, #a, #b, a, m, b, n)
-# define TEST_mem_ne(a, m, b, n) test_mem_ne(__FILE__, __LINE__, #a, #b, a, m, b, n)
+#define TEST_mem_eq(a, m, b, n)                                                \
+  test_mem_eq(__FILE__, __LINE__, #a, #b, a, m, b, n)
+#define TEST_mem_ne(a, m, b, n)                                                \
+  test_mem_ne(__FILE__, __LINE__, #a, #b, a, m, b, n)
 
-# define TEST_true(a)         test_true(__FILE__, __LINE__, #a, (a) != 0)
-# define TEST_false(a)        test_false(__FILE__, __LINE__, #a, (a) != 0)
+#define TEST_true(a) test_true(__FILE__, __LINE__, #a, (a) != 0)
+#define TEST_false(a) test_false(__FILE__, __LINE__, #a, (a) != 0)
 
-# define TEST_BN_eq(a, b)     test_BN_eq(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_BN_ne(a, b)     test_BN_ne(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_BN_lt(a, b)     test_BN_lt(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_BN_gt(a, b)     test_BN_gt(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_BN_le(a, b)     test_BN_le(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_BN_ge(a, b)     test_BN_ge(__FILE__, __LINE__, #a, #b, a, b)
-# define TEST_BN_eq_zero(a)   test_BN_eq_zero(__FILE__, __LINE__, #a, a)
-# define TEST_BN_ne_zero(a)   test_BN_ne_zero(__FILE__, __LINE__, #a, a)
-# define TEST_BN_lt_zero(a)   test_BN_lt_zero(__FILE__, __LINE__, #a, a)
-# define TEST_BN_gt_zero(a)   test_BN_gt_zero(__FILE__, __LINE__, #a, a)
-# define TEST_BN_le_zero(a)   test_BN_le_zero(__FILE__, __LINE__, #a, a)
-# define TEST_BN_ge_zero(a)   test_BN_ge_zero(__FILE__, __LINE__, #a, a)
-# define TEST_BN_eq_one(a)    test_BN_eq_one(__FILE__, __LINE__, #a, a)
-# define TEST_BN_eq_word(a, w) test_BN_eq_word(__FILE__, __LINE__, #a, #w, a, w)
-# define TEST_BN_abs_eq_word(a, w) test_BN_abs_eq_word(__FILE__, __LINE__, #a, #w, a, w)
-# define TEST_BN_odd(a)       test_BN_odd(__FILE__, __LINE__, #a, a)
-# define TEST_BN_even(a)      test_BN_even(__FILE__, __LINE__, #a, a)
+#define TEST_BN_eq(a, b) test_BN_eq(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_BN_ne(a, b) test_BN_ne(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_BN_lt(a, b) test_BN_lt(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_BN_gt(a, b) test_BN_gt(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_BN_le(a, b) test_BN_le(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_BN_ge(a, b) test_BN_ge(__FILE__, __LINE__, #a, #b, a, b)
+#define TEST_BN_eq_zero(a) test_BN_eq_zero(__FILE__, __LINE__, #a, a)
+#define TEST_BN_ne_zero(a) test_BN_ne_zero(__FILE__, __LINE__, #a, a)
+#define TEST_BN_lt_zero(a) test_BN_lt_zero(__FILE__, __LINE__, #a, a)
+#define TEST_BN_gt_zero(a) test_BN_gt_zero(__FILE__, __LINE__, #a, a)
+#define TEST_BN_le_zero(a) test_BN_le_zero(__FILE__, __LINE__, #a, a)
+#define TEST_BN_ge_zero(a) test_BN_ge_zero(__FILE__, __LINE__, #a, a)
+#define TEST_BN_eq_one(a) test_BN_eq_one(__FILE__, __LINE__, #a, a)
+#define TEST_BN_eq_word(a, w) test_BN_eq_word(__FILE__, __LINE__, #a, #w, a, w)
+#define TEST_BN_abs_eq_word(a, w)                                              \
+  test_BN_abs_eq_word(__FILE__, __LINE__, #a, #w, a, w)
+#define TEST_BN_odd(a) test_BN_odd(__FILE__, __LINE__, #a, a)
+#define TEST_BN_even(a) test_BN_even(__FILE__, __LINE__, #a, a)
 
 /*
  * TEST_error(desc, ...) prints an informative error message in the standard
  * format.  |desc| is a printf format string.
  */
-# if !defined(__STDC_VERSION__) || __STDC_VERSION__ < 199901L
-#  define TEST_error         test_error_c90
-#  define TEST_info          test_info_c90
-# else
-#  define TEST_error(...)    test_error(__FILE__, __LINE__, __VA_ARGS__)
-#  define TEST_info(...)     test_info(__FILE__, __LINE__, __VA_ARGS__)
-# endif
-# define TEST_note           test_note
-# define TEST_openssl_errors test_openssl_errors
-# define TEST_perror         test_perror
+#if !defined(__STDC_VERSION__) || __STDC_VERSION__ < 199901L
+#define TEST_error test_error_c90
+#define TEST_info test_info_c90
+#else
+#define TEST_error(...) test_error(__FILE__, __LINE__, __VA_ARGS__)
+#define TEST_info(...) test_info(__FILE__, __LINE__, __VA_ARGS__)
+#endif
+#define TEST_note test_note
+#define TEST_openssl_errors test_openssl_errors
+#define TEST_perror test_perror
 
 extern BIO *bio_out;
 extern BIO *bio_err;
@@ -403,29 +405,28 @@ void test_output_string(const char *name, const char *m, size_t l);
 void test_output_bignum(const char *name, const BIGNUM *bn);
 void test_output_memory(const char *name, const unsigned char *m, size_t l);
 
-
 /*
  * Utilities to parse a test file.
  */
-#define TESTMAXPAIRS        20
+#define TESTMAXPAIRS 20
 
 typedef struct pair_st {
-    char *key;
-    char *value;
+  char *key;
+  char *value;
 } PAIR;
 
 typedef struct stanza_st {
-    const char *test_file;      /* Input file name */
-    BIO *fp;                    /* Input file */
-    int curr;                   /* Current line in file */
-    int start;                  /* Line where test starts */
-    int errors;                 /* Error count */
-    int numtests;               /* Number of tests */
-    int numskip;                /* Number of skipped tests */
-    int numpairs;
-    PAIR pairs[TESTMAXPAIRS];
-    BIO *key;                   /* temp memory BIO for reading in keys */
-    char buff[4096];            /* Input buffer for a single key/value */
+  const char *test_file; /* Input file name */
+  BIO *fp;               /* Input file */
+  int curr;              /* Current line in file */
+  int start;             /* Line where test starts */
+  int errors;            /* Error count */
+  int numtests;          /* Number of tests */
+  int numskip;           /* Number of skipped tests */
+  int numpairs;
+  PAIR pairs[TESTMAXPAIRS];
+  BIO *key;        /* temp memory BIO for reading in keys */
+  char buff[4096]; /* Input buffer for a single key/value */
 } STANZA;
 
 /*
@@ -454,4 +455,4 @@ void test_clearstanza(STANZA *s);
  */
 char *glue_strings(const char *list[], size_t *out_len);
 
-#endif                          /* HEADER_TESTUTIL_H */
+#endif /* HEADER_TESTUTIL_H */

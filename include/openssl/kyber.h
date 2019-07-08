@@ -18,8 +18,8 @@ extern "C" {
 
 # define EVP_PKEY_CTRL_KYBER_KEYGEN_MODE   (EVP_PKEY_ALG_CTRL + 1)
 
-# define Kyber_set_app_data(s,arg)         Kyber_set_ex_data(s,0,arg)
-# define Kyber_get_app_data(s)             Kyber_get_ex_data(s,0)
+# define Kyber_set_app_data(s,arg)         kyber_set_ex_data(s,0,arg)
+# define Kyber_get_app_data(s)             kyber_get_ex_data(s,0)
 
 # define EVP_PKEY_CTX_set_kyber_mode(ctx, mode) \
         kyber_pkey_ctx_ctrl(ctx, -1, EVP_PKEY_CTRL_KYBER_KEYGEN_MODE, mode, NULL)

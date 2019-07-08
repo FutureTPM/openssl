@@ -4770,3 +4770,7 @@ Dilithium_sign                          4721	1_1_0	EXIST::FUNCTION:DILITHIUM
 Dilithium_verify                        4722	1_1_0	EXIST::FUNCTION:DILITHIUM
 kyber_OpenSSL                           4723	1_1_0	EXIST::FUNCTION:KYBER
 Dilithium_OpenSSL                       4724	1_1_0	EXIST::FUNCTION:DILITHIUM
+dilithium_meth_get_sign                 4725    1_1_0   EXIST::FUNCTION:DILITHIUM
+dilithium_meth_set_sign                 4726    1_1_0   EXIST::FUNCTION:DILITHIUM
+dilithium_meth_get_verify               4727    1_1_0   EXIST::FUNCTION:DILITHIUM
+dilithium_meth_set_verify               4728    1_1_0   EXIST::FUNCTION:DILITHIUM

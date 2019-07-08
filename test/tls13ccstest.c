@@ -246,7 +246,7 @@ static int test_tls13ccs(int tst)
     SSL *sssl = NULL, *cssl = NULL;
     int ret = 0;
     const char msg[] = "Dummy data";
-    char buf[80];
+    char buf[4196];
     size_t written, readbytes;
     SSL_SESSION *sess = NULL;
 

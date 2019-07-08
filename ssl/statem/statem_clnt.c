@@ -1778,7 +1778,7 @@ static MSG_PROCESS_RETURN tls_process_as_hello_retry_request(SSL *s,
 
     if (s->ext.tls13_cookie_len == 0
 #if !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_DH) || !defined(OPENSSL_NO_KYBER)
-        && s->s3->tmp.pkey != NULL
+        && s->s3->tmp.pkey != NULL && s->s3->tmp.kyber_pkey != NULL
 #endif
         ) {
         /*

@@ -8,8 +8,8 @@
  * https://www.openssl.org/source/license.html
  */
 
-#include <openssl/err.h>
 #include <openssl/cryptoerr.h>
+#include <openssl/err.h>
 
 #ifndef OPENSSL_NO_ERR
 
@@ -50,28 +50,25 @@ static const ERR_STRING_DATA CRYPTO_str_functs[] = {
     {ERR_PACK(ERR_LIB_CRYPTO, CRYPTO_F_PKEY_SIPHASH_INIT, 0),
      "pkey_siphash_init"},
     {ERR_PACK(ERR_LIB_CRYPTO, CRYPTO_F_SK_RESERVE, 0), "sk_reserve"},
-    {0, NULL}
-};
+    {0, NULL}};
 
 static const ERR_STRING_DATA CRYPTO_str_reasons[] = {
     {ERR_PACK(ERR_LIB_CRYPTO, 0, CRYPTO_R_FIPS_MODE_NOT_SUPPORTED),
-    "fips mode not supported"},
+     "fips mode not supported"},
     {ERR_PACK(ERR_LIB_CRYPTO, 0, CRYPTO_R_ILLEGAL_HEX_DIGIT),
-    "illegal hex digit"},
+     "illegal hex digit"},
     {ERR_PACK(ERR_LIB_CRYPTO, 0, CRYPTO_R_ODD_NUMBER_OF_DIGITS),
-    "odd number of digits"},
-    {0, NULL}
-};
+     "odd number of digits"},
+    {0, NULL}};
 
 #endif
 
-int ERR_load_CRYPTO_strings(void)
-{
+int ERR_load_CRYPTO_strings(void) {
 #ifndef OPENSSL_NO_ERR
-    if (ERR_func_error_string(CRYPTO_str_functs[0].error) == NULL) {
-        ERR_load_strings_const(CRYPTO_str_functs);
-        ERR_load_strings_const(CRYPTO_str_reasons);
-    }
+  if (ERR_func_error_string(CRYPTO_str_functs[0].error) == NULL) {
+    ERR_load_strings_const(CRYPTO_str_functs);
+    ERR_load_strings_const(CRYPTO_str_reasons);
+  }
 #endif
-    return 1;
+  return 1;
 }

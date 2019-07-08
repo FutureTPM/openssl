@@ -649,11 +649,10 @@ int tls_parse_ctos_key_share(SSL *s, PACKET *pkt, unsigned int context, X509 *x,
         return 0;
     }
 
-    if (PACKET_remaining(&key_share_list) == 0) {
+    if (s->s3->group_id != 0 && PACKET_remaining(&key_share_list) == 0) {
         /*
-         * If we set a group_id already, then we must have sent an HRR
-         * requesting a new key_share. If we haven't got one then that is an
-         * error
+         * If we set a key type, then we must have sent an HRR requesting a new
+         * key_share. If we haven't got one then that is an error
          */
         SSLfatal(s, SSL_AD_ILLEGAL_PARAMETER, SSL_F_TLS_PARSE_CTOS_KEY_SHARE,
                  SSL_R_BAD_KEY_SHARE);
@@ -677,8 +676,8 @@ int tls_parse_ctos_key_share(SSL *s, PACKET *pkt, unsigned int context, X509 *x,
         if (found)
             continue;
 
-        /* Check key type */
-        if (key_type == KYBER_KEX_CODE) {
+        /* Check key type and flag */
+        if (key_type == KYBER_KEX_CODE && (s->ctx->options & 0x1) == 0) {
             /* Handle Kyber key */
 
             /*
@@ -1723,10 +1722,17 @@ EXT_RETURN tls_construct_stoc_key_share(SSL *s, WPACKET *pkt,
     EVP_PKEY_CTX *pctx = NULL;
     uint16_t key_type;
 
-    if (s->s3->key_type == 0) {
+    /* If it's an HRR group_id is valid but key_type hasn't been set */
+    if (s->s3->key_type == 0 /* || s->s3->group_id != 0 */) {
         key_type = s->s3->group_id;
-    } else {
+    } else if (s->s3->key_type == 1) {
         key_type = KYBER_KEX_CODE;
+    } else {
+        /* If it's not an HRR and we haven't decided which KEX to use fail */
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR,
+                 SSL_F_TLS_CONSTRUCT_STOC_KEY_SHARE,
+                 ERR_R_INTERNAL_ERROR);
+        return EXT_RETURN_FAIL;
     }
 
     if (s->hello_retry_request == SSL_HRR_PENDING) {
@@ -1734,6 +1740,13 @@ EXT_RETURN tls_construct_stoc_key_share(SSL *s, WPACKET *pkt,
             /* Original key_share was acceptable so don't ask for another one */
             return EXT_RETURN_NOT_SENT;
         }
+
+        //if (s->s3->group_id != 0 && s->s3->key_type != 1) {
+        //    s->s3->key_type = 0;
+        //} else {
+        //    s->s3->key_type = 1;
+        //}
+
         if (!WPACKET_put_bytes_u16(pkt, TLSEXT_TYPE_key_share)
                 || !WPACKET_start_sub_packet_u16(pkt)
                 || !WPACKET_put_bytes_u16(pkt, key_type)
@@ -1765,7 +1778,7 @@ EXT_RETURN tls_construct_stoc_key_share(SSL *s, WPACKET *pkt,
         return EXT_RETURN_FAIL;
     }
 
-    if (key_type == KYBER_KEX_CODE) {
+    if (key_type == KYBER_KEX_CODE && (s->ctx->options & 0x1) == 0) {
         /* Handle Kyber key */
         pctx = EVP_PKEY_CTX_new(ckey, NULL);
         if (pctx == NULL) {

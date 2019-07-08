@@ -8,24 +8,23 @@
  */
 
 #ifndef _GNU_SOURCE
-# define _GNU_SOURCE
+#define _GNU_SOURCE
 #endif
 
-#include <stdlib.h>
 #include "internal/cryptlib.h"
+#include <stdlib.h>
 
-char *ossl_safe_getenv(const char *name)
-{
+char *ossl_safe_getenv(const char *name) {
 #if defined(__GLIBC__) && defined(__GLIBC_PREREQ)
-# if __GLIBC_PREREQ(2, 17)
-#  define SECURE_GETENV
-    return secure_getenv(name);
-# endif
+#if __GLIBC_PREREQ(2, 17)
+#define SECURE_GETENV
+  return secure_getenv(name);
+#endif
 #endif
 
 #ifndef SECURE_GETENV
-    if (OPENSSL_issetugid())
-        return NULL;
-    return getenv(name);
+  if (OPENSSL_issetugid())
+    return NULL;
+  return getenv(name);
 #endif
 }

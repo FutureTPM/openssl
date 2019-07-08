@@ -13,6 +13,7 @@
  * non-record layer code should be using these structures in any way.        *
  *                                                                           *
  *****************************************************************************/
+#include <openssl/ssl.h>
 
 typedef struct ssl3_buffer_st {
     /* at least SSL3_RT_MAX_PACKET_SIZE bytes, see ssl3_setup_buffers() */

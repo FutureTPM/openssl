@@ -7,6 +7,8 @@
  * https://www.openssl.org/source/license.html
  * or in the file LICENSE in the source distribution.
  */
+#include <stddef.h>
+#include <stdint.h>
 
 int FuzzerTestOneInput(const uint8_t *buf, size_t len);
 int FuzzerInitialize(int *argc, char ***argv);

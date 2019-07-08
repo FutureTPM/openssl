@@ -125,3 +125,36 @@ int dilithium_meth_set_keygen(DILITHIUM_METHOD *meth,
     return 1;
 }
 
+int (*dilithium_meth_get_sign(const DILITHIUM_METHOD *meth))
+    (const unsigned char *m, unsigned int m_length,
+     unsigned char *sigret, unsigned int *siglen,
+     const Dilithium *dilithium)
+{
+    return meth->dilithium_sign;
+}
+
+int dilithium_meth_set_sign(DILITHIUM_METHOD *meth,
+                      int (*sign) (const unsigned char *m, unsigned int m_length,
+                                   unsigned char *sigret, unsigned int *siglen,
+                                   const Dilithium *dilithium))
+{
+    meth->dilithium_sign = sign;
+    return 1;
+}
+
+int (*dilithium_meth_get_verify(const DILITHIUM_METHOD *meth))
+    (const unsigned char *m, unsigned int m_length,
+     const unsigned char *sigbuf, unsigned int siglen,
+     const Dilithium *dilithium)
+{
+    return meth->dilithium_verify;
+}
+
+int dilithium_meth_set_verify(DILITHIUM_METHOD *meth,
+                        int (*verify) (const unsigned char *m, unsigned int m_length,
+                                       const unsigned char *sigbuf, unsigned int siglen,
+                                       const Dilithium *dilithium))
+{
+    meth->dilithium_verify = verify;
+    return 1;
+}

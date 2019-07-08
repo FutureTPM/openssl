@@ -8,6 +8,8 @@
  */
 
 /* Based on https://131002.net/siphash C reference implementation */
+#include <stdint.h>
+#include "internal/siphash.h"
 
 struct siphash_st {
     uint64_t total_inlen;

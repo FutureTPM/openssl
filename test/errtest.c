@@ -7,33 +7,31 @@
  * https://www.openssl.org/source/license.html
  */
 
-#include <openssl/opensslconf.h>
 #include <openssl/err.h>
+#include <openssl/opensslconf.h>
 
 #include "testutil.h"
 
 #if defined(OPENSSL_SYS_WINDOWS)
-# include <windows.h>
+#include <windows.h>
 #else
-# include <errno.h>
+#include <errno.h>
 #endif
 
 /* Test that querying the error queue preserves the OS error. */
-static int preserves_system_error(void)
-{
+static int preserves_system_error(void) {
 #if defined(OPENSSL_SYS_WINDOWS)
-    SetLastError(ERROR_INVALID_FUNCTION);
-    ERR_get_error();
-    return TEST_int_eq(GetLastError(), ERROR_INVALID_FUNCTION);
+  SetLastError(ERROR_INVALID_FUNCTION);
+  ERR_get_error();
+  return TEST_int_eq(GetLastError(), ERROR_INVALID_FUNCTION);
 #else
-    errno = EINVAL;
-    ERR_get_error();
-    return TEST_int_eq(errno, EINVAL);
+  errno = EINVAL;
+  ERR_get_error();
+  return TEST_int_eq(errno, EINVAL);
 #endif
 }
 
-int setup_tests(void)
-{
-    ADD_TEST(preserves_system_error);
-    return 1;
+int setup_tests(void) {
+  ADD_TEST(preserves_system_error);
+  return 1;
 }

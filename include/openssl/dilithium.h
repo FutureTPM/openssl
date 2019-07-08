@@ -18,8 +18,8 @@ extern "C" {
 
 # define EVP_PKEY_CTRL_DILITHIUM_KEYGEN_MODE   (EVP_PKEY_ALG_CTRL + 1)
 
-# define Dilithium_set_app_data(s,arg)         Dilithium_set_ex_data(s,0,arg)
-# define Dilithium_get_app_data(s)             Dilithium_get_ex_data(s,0)
+# define Dilithium_set_app_data(s,arg)         dilithium_set_ex_data(s,0,arg)
+# define Dilithium_get_app_data(s)             dilithium_get_ex_data(s,0)
 
 # define EVP_PKEY_CTX_set_dilithium_mode(ctx, mode) \
         dilithium_pkey_ctx_ctrl(ctx, -1, EVP_PKEY_CTRL_DILITHIUM_KEYGEN_MODE, mode, NULL)
@@ -100,6 +100,22 @@ int (*dilithium_meth_get_keygen(const DILITHIUM_METHOD *meth))
     (Dilithium *dilithium, int mode);
 int dilithium_meth_set_keygen(DILITHIUM_METHOD *dilithium,
                         int (*keygen) (Dilithium *dilithium, int mode));
+int (*dilithium_meth_get_sign(const DILITHIUM_METHOD *meth))
+    (const unsigned char *m, unsigned int m_length,
+     unsigned char *sigret, unsigned int *siglen,
+     const Dilithium *dilithium);
+int dilithium_meth_set_sign(DILITHIUM_METHOD *meth,
+                      int (*sign) (const unsigned char *m, unsigned int m_length,
+                                   unsigned char *sigret, unsigned int *siglen,
+                                   const Dilithium *dilithium));
+int (*dilithium_meth_get_verify(const DILITHIUM_METHOD *meth))
+    (const unsigned char *m, unsigned int m_length,
+     const unsigned char *sigbuf, unsigned int siglen,
+     const Dilithium *dilithium);
+int dilithium_meth_set_verify(DILITHIUM_METHOD *meth,
+                        int (*verify) (const unsigned char *m, unsigned int m_length,
+                                       const unsigned char *sigbuf, unsigned int siglen,
+                                       const Dilithium *dilithium));
 
 #  ifdef  __cplusplus
 }

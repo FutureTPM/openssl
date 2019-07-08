@@ -74,7 +74,7 @@ my $proxy = TLSProxy::Proxy->new(
 $testtype = EMPTY_EXTENSION;
 $direction = CLIENT_TO_SERVER;
 $proxy->filter(\&modify_key_shares_filter);
-$proxy->serverflags("-curves P-256");
+$proxy->serverflags("-curves P-256 -no_kyber");
 $proxy->start() or plan skip_all => "Unable to start up Proxy for tests";
 plan tests => 22;
 ok(TLSProxy::Message->success(), "Success after HRR");
@@ -95,21 +95,21 @@ ok(TLSProxy::Message->fail(), "Missing key_shares extension");
 #        HelloRetryRequest
 $proxy->clear();
 $proxy->filter(undef);
-$proxy->serverflags("-curves P-256");
+$proxy->serverflags("-curves P-256 -no_kyber");
 $proxy->start();
 ok(TLSProxy::Message->success(), "No initial acceptable key_shares");
 
 #Test 5: No acceptable key_shares and no shared groups should fail
 $proxy->clear();
 $proxy->filter(undef);
-$proxy->serverflags("-curves P-256");
-$proxy->clientflags("-curves P-384");
+$proxy->serverflags("-curves P-256 -no_kyber");
+$proxy->clientflags("-curves P-384 -no_kyber");
 $proxy->start();
 ok(TLSProxy::Message->fail(), "No acceptable key_shares");
 
 #Test 6: A non preferred but acceptable key_share should succeed
 $proxy->clear();
-$proxy->clientflags("-curves P-256");
+$proxy->clientflags("-curves P-256 -no_kyber");
 $proxy->start();
 ok(TLSProxy::Message->success(), "Non preferred key_share");
 $proxy->filter(\&modify_key_shares_filter);
@@ -125,6 +125,7 @@ ok(TLSProxy::Message->success(), "Acceptable key_share at end of list");
 #fail
 $proxy->clear();
 $testtype = NOT_IN_SUPPORTED_GROUPS;
+$proxy->clientflags("-no_kyber");
 $proxy->start();
 ok(TLSProxy::Message->fail(), "Acceptable key_share not in supported_groups");
 
@@ -156,14 +157,14 @@ ok(TLSProxy::Message->fail(), "key_share list trailing data");
 $proxy->clear();
 $direction = SERVER_TO_CLIENT;
 $testtype = LOOK_ONLY;
-$proxy->clientflags("-curves P-256:X25519");
+$proxy->clientflags("-curves P-256:X25519 -no_kyber");
 $proxy->start();
 ok(TLSProxy::Message->success() && ($selectedgroupid == P_256),
    "Multiple acceptable key_shares");
 
 #Test 14: Multiple acceptable key_shares - we choose the first one (part 2)
 $proxy->clear();
-$proxy->clientflags("-curves X25519:P-256");
+$proxy->clientflags("-curves X25519:P-256 -no_kyber");
 $proxy->start();
 ok(TLSProxy::Message->success() && ($selectedgroupid == X25519),
    "Multiple acceptable key_shares (part 2)");
@@ -171,7 +172,7 @@ ok(TLSProxy::Message->success() && ($selectedgroupid == X25519),
 #Test 15: Server sends key_share that wasn't offered should fail
 $proxy->clear();
 $testtype = SELECT_X25519;
-$proxy->clientflags("-curves P-256");
+$proxy->clientflags("-curves P-256 -no_kyber");
 $proxy->start();
 ok(TLSProxy::Message->fail(), "Non offered key_share");
 
@@ -229,7 +230,7 @@ SKIP: {
 $proxy->clear();
 $direction = SERVER_TO_CLIENT;
 $testtype = NO_KEY_SHARES_IN_HRR;
-$proxy->serverflags("-curves X25519");
+$proxy->serverflags("-curves X25519 -no_kyber");
 $proxy->start();
 ok(TLSProxy::Message->fail(), "Server sends HRR with no key_shares");
 
