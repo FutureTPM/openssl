@@ -2,7 +2,7 @@
 #include <openssl/crypto.h>
 #include "internal/cryptlib.h"
 #include <openssl/rand.h>
-#include "kyber_locl.h"
+#include "kyber-locl.h"
 
 int kyber_public_encrypt(int flen, const unsigned char *from,
                         unsigned char *to, Kyber *kyber)

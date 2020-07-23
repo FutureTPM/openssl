@@ -369,7 +369,7 @@ static void KeccakF1600_StatePermute(uint64_t * state)
 *              - unsigned long long mlen: length of input in bytes
 *              - unsigned char p:         domain-separation byte for different Keccak-derived functions
 **************************************************/
-static void keccak_absorb(uint64_t *s,
+void keccak_absorb(uint64_t *s,
                           unsigned int r,
                           const unsigned char *m, unsigned long long int mlen,
                           unsigned char p)
@@ -414,7 +414,7 @@ static void keccak_absorb(uint64_t *s,
 *              - uint64_t *s:                    pointer to in/output Keccak state
 *              - unsigned int r:                 rate in bytes (e.g., 168 for SHAKE128)
 **************************************************/
-static void keccak_squeezeblocks(unsigned char *h, unsigned long long int nblocks,
+void keccak_squeezeblocks(unsigned char *h, unsigned long long int nblocks,
                                  uint64_t *s,
                                  unsigned int r)
 {
@@ -471,7 +471,7 @@ void shake128_stream_init(keccak_state *state,
 *              - unsigned long long nblocks: number of blocks to be squeezed (written to output)
 *              - uint64_t *s:                pointer to in/output Keccak state
 **************************************************/
-void shake128_squeezeblocks(unsigned char *output, unsigned long nblocks, keccak_state *state)
+void shake128_squeezeblocks(unsigned char *output, unsigned long long nblocks, keccak_state *state)
 {
     keccak_squeezeblocks(output, nblocks, state->s, SHAKE128_RATE);
 }
@@ -489,7 +489,7 @@ void shake128_squeezeblocks(unsigned char *output, unsigned long nblocks, keccak
 **************************************************/
 void shake256_absorb(keccak_state *state,
                      const unsigned char *input,
-                     unsigned int inlen)
+                     unsigned long long inlen)
 {
     keccak_absorb(state->s, SHAKE256_RATE, input, inlen, 0x1F);
 }

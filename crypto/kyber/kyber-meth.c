@@ -1,5 +1,5 @@
 #include <string.h>
-#include "kyber_locl.h"
+#include "kyber-locl.h"
 #include <openssl/err.h>
 
 KYBER_METHOD *kyber_meth_new(const char *name, int flags)

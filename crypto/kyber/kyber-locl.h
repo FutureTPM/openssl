@@ -41,14 +41,16 @@ struct kyber_meth_st {
 };
 
 typedef struct {
-    uint64_t k;
-    uint64_t eta;
-    uint64_t publickeybytes;
-    uint64_t secretkeybytes;
-    uint64_t polyveccompressedbytes;
-    uint64_t indcpa_secretkeybytes;
-    uint64_t indcpa_publickeybytes;
-    uint64_t ciphertextbytes;
+  uint64_t k;
+  uint64_t eta;
+  uint64_t publickeybytes;
+  uint64_t secretkeybytes;
+  uint64_t polycompressedbytes;
+  uint64_t polyveccompressedbytes;
+  uint64_t polyvecbytes;
+  uint64_t indcpa_secretkeybytes;
+  uint64_t indcpa_publickeybytes;
+  uint64_t ciphertextbytes;
 } KyberParams;
 
 KyberParams generate_kyber_params(const int kyber_k);

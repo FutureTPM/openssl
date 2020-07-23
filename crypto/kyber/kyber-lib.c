@@ -5,7 +5,7 @@
 #include <openssl/engine.h>
 #include <openssl/evp.h>
 #include "internal/evp_int.h"
-#include "kyber_locl.h"
+#include "kyber-locl.h"
 
 Kyber *kyber_new(void)
 {

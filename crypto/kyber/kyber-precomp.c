@@ -1,6 +1,7 @@
-#include "kyber_ntt.h"
+#include "inttypes.h"
+#include "kyber-ntt.h"
 // Random functions from TPM
-#include "kyber_params.h"
+#include "kyber-params.h"
 
 /* Precomputed constants for the forward NTT and inverse NTT.
  * Computed using Pari/GP as follows:

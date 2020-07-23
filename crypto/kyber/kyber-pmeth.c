@@ -8,7 +8,7 @@
 #include <openssl/evp.h>
 #include <openssl/x509v3.h>
 #include "internal/evp_int.h"
-#include "kyber_locl.h"
+#include "kyber-locl.h"
 
 /* Kyber pkey context structure */
 

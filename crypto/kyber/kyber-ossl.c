@@ -1,7 +1,7 @@
 #include "internal/cryptlib.h"
-#include "kyber_locl.h"
+#include "kyber-locl.h"
 #include "internal/constant_time_locl.h"
-#include "kyber_params.h"
+#include "kyber-params.h"
 #include "openssl/evp.h"
 
 static int kyber_ossl_public_encrypt(int flen, const unsigned char *from,

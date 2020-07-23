@@ -1,0 +1,2 @@
+crypto/kyber/kyber-precomp.o: crypto/kyber/kyber-precomp.c \
+ crypto/kyber/kyber-ntt.h crypto/kyber/kyber-params.h

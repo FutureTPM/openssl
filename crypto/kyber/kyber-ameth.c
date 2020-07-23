@@ -4,7 +4,7 @@
 #include <openssl/x509.h>
 #include "internal/asn1_int.h"
 #include "internal/evp_int.h"
-#include "kyber_locl.h"
+#include "kyber-locl.h"
 
 static int kyber_pub_encode(X509_PUBKEY *pk, const EVP_PKEY *pkey)
 {
@@ -231,9 +231,9 @@ static int kyber_size(const EVP_PKEY *pkey)
         case 2:
             return 800 + 32;
         case 3:
-            return 1152 + 32;
+            return 1184 + 32;
         case 4:
-            return 1504 + 32;
+            return 1568 + 32;
     }
     return 0;
 }
@@ -272,4 +272,3 @@ const EVP_PKEY_ASN1_METHOD kyber_asn1_meth = {
      0, 0, 0,
      kyber_pkey_check
 };
-

@@ -27,22 +27,38 @@ static int test_kyber_encrypt_decrypt(int mode) {
   int num;
 
   plen = sizeof(ptext_ex) - 1;
-  clen = ((mode + 2) * 352 + 96) + 32;
+  mode = mode + 2;
 
-  ret = kyber_generate_key_ex(key, (mode + 2) & 0xff);
+  switch (mode) {
+  case 2:
+    clen = (mode * 320 + 96) + 32;
+    break;
+  case 3:
+    clen = (mode * 320 + 128) + 32;
+    break;
+  case 4:
+    clen = (mode * 352 + 160) + 32;
+    break;
+  default:
+    break;
+  }
+
+  ret = kyber_generate_key_ex(key, mode & 0xff);
   if (ret == 0) {
     TEST_info("Failed generating key\n");
     return ret;
   }
 
   num = kyber_public_encrypt(plen, ptext_ex, ctext, key);
-  if (!TEST_int_eq(num, clen))
+  if (!TEST_int_eq(num, clen)) {
+    TEST_info("Encrypt size error\n");
     goto err;
-
+  }
   num = kyber_private_decrypt(num, ctext + 32, ptext, key);
-  if (!TEST_mem_eq(ptext, num, ctext, 32))
+  if (!TEST_mem_eq(ptext, num, ctext, 32)) {
+    TEST_info("Decrypt error\n");
     goto err;
-
+  }
   ret = 1;
 err:
   kyber_free(key);

@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include "internal/cryptlib.h"
-#include "kyber_locl.h"
-#include "kyber_params.h"
-#include "kyber_indcpa.h"
-#include "kyber_verify.h"
+#include "kyber-locl.h"
+#include "kyber-params.h"
+#include "kyber-indcpa.h"
+#include "kyber-verify.h"
 #include "openssl/evp.h"
 #include "openssl/rand.h"
 
@@ -11,35 +11,33 @@ static int kyber_builtin_keygen(Kyber *kyber, int mode);
 
 KyberParams generate_kyber_params(const int kyber_k) {
     KyberParams params;
-    uint64_t kyber_polyvecbytes = 0;
-
-    params.k = kyber_k;
-    kyber_polyvecbytes            = kyber_k * KYBER_POLYBYTES;
-    params.polyveccompressedbytes = kyber_k * 352;
-
-    params.indcpa_publickeybytes = params.polyveccompressedbytes +
-        KYBER_SYMBYTES;
-    params.indcpa_secretkeybytes = kyber_polyvecbytes;
-
-    params.publickeybytes =  params.indcpa_publickeybytes;
-    params.secretkeybytes =  params.indcpa_secretkeybytes +
-        params.indcpa_publickeybytes + 2*KYBER_SYMBYTES;
-    params.ciphertextbytes = params.polyveccompressedbytes +
-        KYBER_POLYCOMPRESSEDBYTES;
+    params.polyvecbytes = kyber_k * KYBER_POLYBYTES;
 
     switch (kyber_k) {
         case 2:
-            params.eta = 5; /* Kyber512 */
+            params.polycompressedbytes = 96;
+            params.polyveccompressedbytes = kyber_k * 320;
             break;
         case 3:
-            params.eta = 4; /* Kyber768 */
+            params.polycompressedbytes = 128;
+            params.polyveccompressedbytes = kyber_k * 320;
             break;
         case 4:
-            params.eta = 3; /* Kyber1024 */
+            params.polycompressedbytes = 160;
+            params.polyveccompressedbytes = kyber_k * 352;
             break;
         default:
             break;
     }
+
+    params.k = kyber_k;
+    params.indcpa_publickeybytes = params.polyvecbytes + KYBER_SYMBYTES;
+    params.indcpa_secretkeybytes = params.polyvecbytes;
+
+    params.publickeybytes =  params.indcpa_publickeybytes;
+    params.secretkeybytes =  params.indcpa_secretkeybytes + params.indcpa_publickeybytes + 2*KYBER_SYMBYTES;
+    params.ciphertextbytes = params.polyveccompressedbytes + params.polycompressedbytes;
+    params.eta = 2;
 
     return params;
 }
@@ -85,7 +83,7 @@ static int kyber_builtin_keygen(Kyber *kyber, const int mode)
 
     // Command Output
     indcpa_keypair(kyber->public_key, kyber->private_key,
-            params.k, params.polyveccompressedbytes, params.eta);
+            params.k, params.polyvecbytes, params.eta);
     for (size_t i = 0; i < params.indcpa_publickeybytes; i++) {
         kyber->private_key[i+params.indcpa_secretkeybytes] = kyber->public_key[i];
     }
@@ -122,7 +120,7 @@ int kyber_encapsulate(const Kyber *kyber, uint8_t *ss, uint8_t **ct) {
     if (mdctx == NULL) {
         return -1;
     }
-
+    printf("Encapsulate!\n");
     if (kyber == NULL)
         return -1;
 
@@ -161,9 +159,12 @@ int kyber_encapsulate(const Kyber *kyber, uint8_t *ss, uint8_t **ct) {
 
     /* coins are in kr+KYBER_SYMBYTES */
     indcpa_enc(*ct, buf,
-            kyber->public_key,
-            kr+KYBER_SYMBYTES, params.k,
-            params.polyveccompressedbytes, params.eta);
+               kyber->public_key,
+               kr+KYBER_SYMBYTES, params.k,
+               params.polyveccompressedbytes,
+               params.eta,
+               params.polyvecbytes,
+               params.polycompressedbytes);
 
     /* overwrite coins in kr with H(c) */
     // TODO: Error checking
@@ -190,7 +191,7 @@ int kyber_decapsulate(const Kyber *kyber, uint8_t *ss, const uint8_t *ct) {
     uint8_t buf[2*KYBER_SYMBYTES];
     /* Will contain key, coins, qrom-hash */
     uint8_t kr[2*KYBER_SYMBYTES];
-
+    printf("Decapsulate!\n");
     EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
     if (mdctx == NULL) {
         return -1;
@@ -211,8 +212,11 @@ int kyber_decapsulate(const Kyber *kyber, uint8_t *ss, const uint8_t *ct) {
     const unsigned char *pk = kyber->private_key+params.indcpa_secretkeybytes;
     unsigned char cmp[params.ciphertextbytes];
 
+    /* indcpa_dec(buf, ct, kyber->private_key, params.k, */
+    /*            params.polyveccompressedbytes, params.eta); */
+
     indcpa_dec(buf, ct, kyber->private_key, params.k,
-            params.polyveccompressedbytes, params.eta);
+               params.polyveccompressedbytes, params.polycompressedbytes);
 
     /* Multitarget countermeasure for coins + contributory KEM */
     for(i = 0; i < KYBER_SYMBYTES; i++) {
@@ -226,7 +230,10 @@ int kyber_decapsulate(const Kyber *kyber, uint8_t *ss, const uint8_t *ct) {
 
     /* coins are in kr+KYBER_SYMBYTES */
     indcpa_enc(cmp, buf, pk, kr+KYBER_SYMBYTES, params.k,
-            params.polyveccompressedbytes, params.eta);
+               params.polyveccompressedbytes,
+               params.eta,
+               params.polyvecbytes,
+               params.polycompressedbytes);
 
     fail = kyber_verify(ct, cmp, params.ciphertextbytes);
 

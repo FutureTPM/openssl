@@ -2,7 +2,7 @@
 #include "internal/cryptlib.h"
 #include <openssl/x509.h>
 #include <openssl/asn1t.h>
-#include "kyber_locl.h"
+#include "kyber-locl.h"
 
 typedef struct kyber_privatekey_st {
     int32_t mode;

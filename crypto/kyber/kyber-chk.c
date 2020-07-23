@@ -1,5 +1,5 @@
 #include <openssl/err.h>
-#include "kyber_locl.h"
+#include "kyber-locl.h"
 
 int kyber_check_key(const Kyber *key)
 {
@@ -18,19 +18,19 @@ int kyber_check_key_ex(const Kyber *key)
 
     switch(key->mode) {
         case 2:
-            if (key->public_key_size != 736 || key->private_key_size != 1632) {
+            if (key->public_key_size != 800|| key->private_key_size != 1632) {
                 ret = 0;
                 Kybererr(KYBER_F_KYBER_CHECK_KEY_EX, KYBER_R_WRONG_KEY_SIZE);
             }
             break;
         case 3:
-            if (key->public_key_size != 1088 || key->private_key_size != 2400) {
+            if (key->public_key_size != 1184 || key->private_key_size != 2400) {
                 ret = 0;
                 Kybererr(KYBER_F_KYBER_CHECK_KEY_EX, KYBER_R_WRONG_KEY_SIZE);
             }
             break;
         case 4:
-            if (key->public_key_size != 1440 || key->private_key_size != 3168) {
+            if (key->public_key_size != 1568 || key->private_key_size != 3168) {
                 ret = 0;
                 Kybererr(KYBER_F_KYBER_CHECK_KEY_EX, KYBER_R_WRONG_KEY_SIZE);
             }

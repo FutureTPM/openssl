@@ -1,0 +1,16 @@
+#ifndef KYBER_PARAMS_H
+#define KYBER_PARAMS_H
+
+#define KYBER_SYMBYTES 32
+#define KYBER_SSBYTES  32
+
+#define KYBER_N 256
+#define KYBER_Q 3329
+
+#define KYBER_POLYBYTES 384
+
+#define MAX_KYBER_K 4
+
+#define KYBER_XOF_BLOCKBYTES 168
+
+#endif
