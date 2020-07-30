@@ -18,6 +18,7 @@
 #include <openssl/dsa.h>
 #include <openssl/dh.h>
 #include <openssl/kyber.h>
+#include <openssl/nttru.h>
 #include <openssl/dilithium.h>
 
 #ifndef OPENSSL_NO_RSA
@@ -37,6 +38,10 @@ static Kyber *pkey_get_kyber(EVP_PKEY *key, Kyber **kyber);
 
 #ifndef OPENSSL_NO_DILITHIUM
 static Dilithium *pkey_get_dilithium(EVP_PKEY *key, Dilithium **dilithium);
+#endif
+
+#ifndef OPENSSL_NO_NTTRU
+static NTTRU *pkey_get_NTTRU(EVP_PKEY *key, NTTRU **nttru);
 #endif
 
 IMPLEMENT_PEM_rw(X509_REQ, X509_REQ, PEM_STRING_X509_REQ, X509_REQ)
@@ -275,4 +280,47 @@ Dilithium *PEM_read_DilithiumPrivateKey(FILE *fp, Dilithium **dilithium, pem_pas
 
 # endif
 
+#endif
+
+
+#ifndef OPENSSL_NO_NTTRU
+static NTTRU *pkey_get_NTTRU(EVP_PKEY *key, NTTRU **nttru)
+{
+    NTTRU *dtmp;
+    if (!key)
+        return NULL;
+    dtmp = EVP_PKEY_get1_NTTRU(key);
+    EVP_PKEY_free(key);
+    if (!dtmp)
+        return NULL;
+    if (nttru) {
+        nttru_free(*nttru);
+        *nttru = dtmp;
+    }
+    return dtmp;
+}
+
+NTTRU *PEM_read_bio_NttruPrivateKey(BIO *bp, NTTRU **key, pem_password_cb *cb,
+                                  void *u)
+{
+    EVP_PKEY *pktmp;
+    pktmp = PEM_read_bio_PrivateKey(bp, NULL, cb, u);
+    return pkey_get_NTTRU(pktmp, key); /* will free pktmp */
+}
+
+IMPLEMENT_PEM_write_cb(NttruPrivateKey, NTTRU, PEM_STRING_NTTRU_PRIVATEKEY,
+                       NttruPrivateKey)
+IMPLEMENT_PEM_rw_const(NttruPublicKey, NTTRU, PEM_STRING_NTTRU_PUBLICKEY,
+                       NttruPublicKey)
+IMPLEMENT_PEM_rw(NTTRU_PUBKEY, NTTRU, PEM_STRING_PUBLIC, NTTRU_PUBKEY)
+
+# ifndef OPENSSL_NO_STDIO
+NTTRU *PEM_read_NttruPrivateKey(FILE *fp, NTTRU **nttru, pem_password_cb *cb,
+                              void *u)
+{
+    EVP_PKEY *pktmp;
+    pktmp = PEM_read_PrivateKey(fp, NULL, cb, u);
+    return pkey_get_NTTRU(pktmp, nttru); /* will free pktmp */
+}
+# endif
 #endif

@@ -14,6 +14,7 @@
 #include <openssl/objects.h>
 #include <openssl/rsa.h>
 #include <openssl/kyber.h>
+#include <openssl/nttru.h>
 #include <openssl/dilithium.h>
 #include <openssl/dsa.h>
 #include <openssl/ec.h>
@@ -32,6 +33,10 @@ int i2d_PublicKey(EVP_PKEY *a, unsigned char **pp)
 #ifndef OPENSSL_NO_KYBER
     case EVP_PKEY_KYBER:
         return i2d_KyberPublicKey(EVP_PKEY_get0_Kyber(a), pp);
+#endif
+#ifndef OPENSSL_NO_NTTRU
+    case EVP_PKEY_NTTRU:
+      return i2d_NttruPublicKey(EVP_PKEY_get0_NTTRU(a), pp);
 #endif
 #ifndef OPENSSL_NO_DILITHIUM
     case EVP_PKEY_DILITHIUM:

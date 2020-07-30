@@ -126,6 +126,7 @@ static const ssl_cipher_table ssl_cipher_table_kx[] = {
     {SSL_kDHEPSK, NID_kx_dhe_psk}, {SSL_kRSAPSK, NID_kx_rsa_psk},
     {SSL_kPSK, NID_kx_psk},        {SSL_kSRP, NID_kx_srp},
     {SSL_kGOST, NID_kx_gost},      {SSL_kKYBER, NID_kx_kyber},
+    {SSL_kGOST, NID_kx_gost},      {SSL_kNTTRU, NID_kx_NTTRU},
     {SSL_kANY, NID_kx_any}};
 
 static const ssl_cipher_table ssl_cipher_table_auth[] = {
@@ -205,6 +206,8 @@ static const SSL_CIPHER cipher_aliases[] = {
     {0, SSL_TXT_kRSA, NULL, 0, SSL_kRSA},
 
     {0, SSL_TXT_kKYBER, NULL, 0, SSL_kKYBER},
+
+    {0, SSL_TXT_kNTTRU, NULL, 0, SSL_kNTTRU},
 
     {0, SSL_TXT_kEDH, NULL, 0, SSL_kDHE},
     {0, SSL_TXT_kDHE, NULL, 0, SSL_kDHE},
@@ -389,6 +392,9 @@ int ssl_load_ciphers(void) {
 #endif
 #ifdef OPENSSL_NO_KYBER
   disabled_mkey_mask |= SSL_kKYBER;
+#endif
+#ifdef OPENSSL_NO_NTTRU
+  disabled_mkey_mask |= SSL_kNTTRU;
 #endif
 #ifdef OPENSSL_NO_DILITHIUM
   disabled_auth_mask |= SSL_aDILITHIUM;
@@ -1410,6 +1416,13 @@ STACK_OF(SSL_CIPHER) *
   ssl_cipher_apply_rule(0, SSL_kKYBER, 0, 0, 0, 0, 0, CIPHER_DEL, -1, &head,
                         &tail);
 
+  ssl_cipher_apply_rule(0, SSL_kNTTRU, SSL_aDILITHIUM, 0, 0, 0, 0, CIPHER_ADD,
+                        -1, &head, &tail);
+  ssl_cipher_apply_rule(0, SSL_kNTTRU, 0, 0, 0, 0, 0, CIPHER_ADD, -1, &head,
+                        &tail);
+  ssl_cipher_apply_rule(0, SSL_kNTTRU, 0, 0, 0, 0, 0, CIPHER_DEL, -1, &head,
+                        &tail);
+
   /*
    * Everything else being equal, prefer ephemeral ECDH over other key
    * exchange mechanisms.
@@ -1499,6 +1512,8 @@ STACK_OF(SSL_CIPHER) *
   ssl_cipher_apply_rule(0, SSL_kDHE | SSL_kECDHE, 0, 0, SSL_AEAD, 0, 0,
                         CIPHER_BUMP, -1, &head, &tail);
   ssl_cipher_apply_rule(0, SSL_kKYBER, 0, 0, 0, 0, 0, CIPHER_BUMP, -1, &head,
+                        &tail);
+  ssl_cipher_apply_rule(0, SSL_kNTTRU, 0, 0, 0, 0, 0, CIPHER_BUMP, -1, &head,
                         &tail);
 
   /* Now disable everything (maintaining the ordering!) */
@@ -1622,6 +1637,9 @@ char *SSL_CIPHER_description(const SSL_CIPHER *cipher, char *buf, int len) {
     break;
   case SSL_kKYBER:
     kx = "KYBER";
+    break;
+  case SSL_kNTTRU:
+    kx = "NTTRU";
     break;
   case SSL_kDHE:
     kx = "DH";

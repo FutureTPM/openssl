@@ -33,6 +33,7 @@
 #define SSL3_MT_DUMMY   -1
 
 #define KYBER_KEX_CODE 0xbabe
+#define NTTRU_KEX_CODE 0xfe10
 
 extern const unsigned char hrrrandom[];
 

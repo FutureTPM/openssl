@@ -5366,3 +5366,46 @@ EVP_PKEY *ssl_generate_kyber_wrapper(void) {
   return pkey;
 }
 #endif
+
+#ifndef OPENSSL_NO_NTTRU
+/* Generate a Nttru private key */
+EVP_PKEY *ssl_generate_pkey_nttru(SSL *s) {
+  EVP_PKEY_CTX *pctx = NULL;
+  EVP_PKEY *pkey = NULL;
+
+  pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_NTTRU, NULL);
+  if (pctx == NULL) {
+    SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL_GENERATE_PKEY_NTTRU,
+             ERR_R_MALLOC_FAILURE);
+    goto err;
+  }
+  if (EVP_PKEY_keygen_init(pctx) <= 0) {
+    SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL_GENERATE_PKEY_NTTRU,
+             ERR_R_EVP_LIB);
+    goto err;
+  }
+  if (EVP_PKEY_keygen(pctx, &pkey) <= 0) {
+    SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL_GENERATE_PKEY_NTTRU,
+             ERR_R_EVP_LIB);
+    EVP_PKEY_free(pkey);
+    pkey = NULL;
+  }
+
+ err:
+  EVP_PKEY_CTX_free(pctx);
+  return pkey;
+}
+
+/*
+ * Generate hollow Nttru PKEY
+ */
+EVP_PKEY *ssl_generate_nttru_wrapper(void) {
+  EVP_PKEY *pkey = NULL;
+
+  if ((pkey = EVP_PKEY_new()) == NULL) {
+    pkey = NULL;
+  }
+
+  return pkey;
+}
+#endif

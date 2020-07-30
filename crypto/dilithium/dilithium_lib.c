@@ -207,6 +207,15 @@ void dilithium_get0_key(const Dilithium *r,
         *public_key_size = r->public_key_size;
 }
 
+void dilithium_get0_privkey(const Dilithium *r,
+                        const uint8_t **private_key, int *private_key_size)
+{
+  if (private_key != NULL)
+    *private_key = r->private_key;
+  if (private_key_size != NULL)
+    *private_key_size = r->private_key_size;
+}
+
 int dilithium_pkey_ctx_ctrl(EVP_PKEY_CTX *ctx, int optype, int cmd, int p1, void *p2)
 {
     /* If key type not Dilithium return error */

@@ -1,0 +1,5 @@
+LIBS=../../libcrypto
+SOURCE[../../libcrypto]=\
+    nttru-ameth.c nttru-asn1.c nttru-chk.c nttru-crpt.c nttru-err.c nttru-fq.c\
+    nttru-gen.c nttru-kem.c nttru-lib.c nttru-meth.c nttru-ntt.c nttru-ossl.c \
+    nttru-pmeth.c nttru-poly.c nttru-prn.c nttru-aes256ctr.c

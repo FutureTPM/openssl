@@ -208,6 +208,14 @@ void kyber_get0_key(const Kyber *r,
         *public_key_size = r->public_key_size;
 }
 
+void kyber_get0_privkey(const Kyber *r, const uint8_t **priv_key,
+                    int *priv_key_size) {
+  if (priv_key != NULL)
+    *priv_key = r->private_key;
+  if (priv_key_size != NULL)
+    *priv_key_size = r->private_key_size;
+}
+
 int kyber_pkey_ctx_ctrl(EVP_PKEY_CTX *ctx, int optype, int cmd, int p1, void *p2)
 {
     /* If key type not Kyber return error */

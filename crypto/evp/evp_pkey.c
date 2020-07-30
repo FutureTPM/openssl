@@ -31,7 +31,6 @@ EVP_PKEY *EVP_PKCS82PKEY(const PKCS8_PRIV_KEY_INFO *p8)
         EVPerr(EVP_F_EVP_PKCS82PKEY, ERR_R_MALLOC_FAILURE);
         return NULL;
     }
-
     if (!EVP_PKEY_set_type(pkey, OBJ_obj2nid(algoid))) {
         EVPerr(EVP_F_EVP_PKCS82PKEY, EVP_R_UNSUPPORTED_PRIVATE_KEY_ALGORITHM);
         i2t_ASN1_OBJECT(obj_tmp, 80, algoid);

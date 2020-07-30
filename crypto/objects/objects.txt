@@ -57,6 +57,9 @@ X9cm 10			: Dilithium-SHA3_256 : dilithium_with_SHA3_256
 X9cm 11			: Dilithium-SHA3_384 : dilithium_with_SHA3_384
 X9cm 12			: Dilithium-SHA3_512 : dilithium_with_SHA3_512
 
+!Cname NTTRU
+X9cm 13			: NTTRU			: NTTRU
+
 ISO-US 10045		: ansi-X9-62		: ANSI X9.62
 !module X9-62
 !Alias id-fieldType ansi-X9-62 1
@@ -1634,6 +1637,7 @@ id-pkinit 5                     : pkInitKDC             : Signing KDC Response
                             : KxPSK        : kx-psk
                             : KxSRP        : kx-srp
                             : KxKyber      : kx-kyber
+                            : KxNTTRU      : kx-NTTRU
                             : KxGOST       : kx-gost
                             : KxANY        : kx-any
 
@@ -1652,6 +1656,10 @@ id-pkinit 5                     : pkInitKDC             : Signing KDC Response
                             : Poly1305     : poly1305
 # NID for Kyber
 #: Kyber        : kyber
+
+# NID for NTTRU
+#: NTTRU        : NTTRU
+
 # NID for SipHash
                             : SipHash      : siphash
 

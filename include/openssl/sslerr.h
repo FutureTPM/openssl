@@ -449,6 +449,11 @@ int ERR_load_SSL_strings(void);
 # define SSL_F_TLS_PROCESS_SKE_KYBER                      640
 # define SSL_F_TLS_PROCESS_CKE_KYBER                      641
 # define SSL_F_SSL_GENERATE_PKEY_KYBER                    642
+# define SSL_F_TLS_CONSTRUCT_CKE_NTTRU                    643
+# define SSL_F_TLS_PROCESS_SKE_NTTRU                      644
+# define SSL_F_TLS_PROCESS_CKE_NTTRU                      645
+# define SSL_F_SSL_GENERATE_PKEY_NTTRU                    646
+
 
 /*
  * SSL reason codes.
@@ -773,5 +778,10 @@ int ERR_load_SSL_strings(void);
 # define SSL_R_MISSING_TMP_KYBER_KEY                      1119
 # define SSL_R_UNABLE_TO_GENERATE_KYBER_WRAPPER           1120
 # define SSL_R_BAD_KYBER_KEY                              1121
+# define SSL_R_NO_NTTRU_CERTIFICATE_SENT_BY_PEER          1122
+# define SSL_R_MISSING_NTTRU_CERTIFICATE                  1123
+# define SSL_R_MISSING_TMP_NTTRU_KEY                      1124
+# define SSL_R_UNABLE_TO_GENERATE_NTTRU_WRAPPER           1125
+# define SSL_R_BAD_NTTRU_KEY                              1126
 
 #endif

@@ -430,6 +430,12 @@ static const ssl_trace_tbl ssl_ciphers_tbl[] = {
     {0xCCB2, "TLS_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384"},
     {0xCCB3, "TLS_KYBER_DILITHIUM_WITH_AES_128_GCM_SHA256"},
     {0xCCB4, "TLS_KYBER_DILITHIUM_WITH_AES_256_CBC_SHA384"},
+    {0xCCB5, "TLS_NTTRU_RSA_WITH_AES_256_GCM_SHA384"},
+    {0xCCB6, "TLS_NTTRU_RSA_WITH_AES_128_GCM_SHA256"},
+    {0xCCB7, "TLS_NTTRU_RSA_WITH_AES_256_CBC_SHA384"},
+    {0xCCB8, "TLS_NTTRU_DILITHIUM_WITH_AES_256_GCM_SHA384"},
+    {0xCCB9, "TLS_NTTRU_DILITHIUM_WITH_AES_128_GCM_SHA256"},
+    {0xCCBF, "TLS_NTTRU_DILITHIUM_WITH_AES_256_CBC_SHA384"},
     {0x1301, "TLS_AES_128_GCM_SHA256"},
     {0x1302, "TLS_AES_256_GCM_SHA384"},
     {0x1303, "TLS_CHACHA20_POLY1305_SHA256"},
@@ -1011,6 +1017,10 @@ static int ssl_get_keyex(const char **pname, const SSL *ssl) {
     *pname = "Kyber";
     return SSL_kKYBER;
   }
+  if (alg_k & SSL_kNTTRU) {
+    *pname = "NTTRU";
+    return SSL_kNTTRU;
+  }
   if (alg_k & SSL_kDHE) {
     *pname = "DHE";
     return SSL_kDHE;
@@ -1061,6 +1071,11 @@ static int ssl_print_client_keyex(BIO *bio, int indent, const SSL *ssl,
   switch (id) {
 
   case SSL_kKYBER:
+    if (!ssl_print_hexbuf(bio, indent + 2, "shared key", 32, &msg, &msglen))
+      return 0;
+    break;
+
+  case SSL_kNTTRU:
     if (!ssl_print_hexbuf(bio, indent + 2, "shared key", 32, &msg, &msglen))
       return 0;
     break;

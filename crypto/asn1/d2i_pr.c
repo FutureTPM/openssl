@@ -94,6 +94,7 @@ EVP_PKEY *d2i_AutoPrivateKey(EVP_PKEY **a, const unsigned char **pp,
      * Since we only need to discern "traditional format" RSA and DSA keys we
      * can just count the elements.
      */
+    printf("sk_ASN1_TYPE_num(inkey) = %d\n", sk_ASN1_TYPE_num(inkey));
     if (sk_ASN1_TYPE_num(inkey) == 6)
         keytype = EVP_PKEY_DSA;
     else if (sk_ASN1_TYPE_num(inkey) == 8)
@@ -102,27 +103,30 @@ EVP_PKEY *d2i_AutoPrivateKey(EVP_PKEY **a, const unsigned char **pp,
         keytype = EVP_PKEY_DILITHIUM;
     else if (sk_ASN1_TYPE_num(inkey) == 4)
         keytype = EVP_PKEY_EC;
-    else if (sk_ASN1_TYPE_num(inkey) == 3) { /* This seems to be PKCS8, not
-                                              * traditional format */
-        PKCS8_PRIV_KEY_INFO *p8 = d2i_PKCS8_PRIV_KEY_INFO(NULL, &p, length);
-        EVP_PKEY *ret;
+    else if (sk_ASN1_TYPE_num(inkey) == 3)
+      keytype = EVP_PKEY_NTTRU;
+    /* else if (sk_ASN1_TYPE_num(inkey) == 3) { /\* This seems to be PKCS8, not */
+    /*                                           * traditional format *\/ */
+    /*     PKCS8_PRIV_KEY_INFO *p8 = d2i_PKCS8_PRIV_KEY_INFO(NULL, &p, length); */
+    /*     EVP_PKEY *ret; */
 
-        sk_ASN1_TYPE_pop_free(inkey, ASN1_TYPE_free);
-        if (!p8) {
-            ASN1err(ASN1_F_D2I_AUTOPRIVATEKEY,
-                    ASN1_R_UNSUPPORTED_PUBLIC_KEY_TYPE);
-            return NULL;
-        }
-        ret = EVP_PKCS82PKEY(p8);
-        PKCS8_PRIV_KEY_INFO_free(p8);
-        if (ret == NULL)
-            return NULL;
-        *pp = p;
-        if (a) {
-            *a = ret;
-        }
-        return ret;
-    } else
+    /*     sk_ASN1_TYPE_pop_free(inkey, ASN1_TYPE_free); */
+    /*     if (!p8) { */
+    /*         ASN1err(ASN1_F_D2I_AUTOPRIVATEKEY, */
+    /*                 ASN1_R_UNSUPPORTED_PUBLIC_KEY_TYPE); */
+    /*         return NULL; */
+    /*     } */
+    /*     ret = EVP_PKCS82PKEY(p8); */
+    /*     PKCS8_PRIV_KEY_INFO_free(p8); */
+    /*     if (ret == NULL) */
+    /*         return NULL; */
+    /*     *pp = p; */
+    /*     if (a) { */
+    /*         *a = ret; */
+    /*     } */
+    /*     return ret; */
+    /* } else */
+    else
         keytype = EVP_PKEY_RSA;
     sk_ASN1_TYPE_pop_free(inkey, ASN1_TYPE_free);
     return d2i_PrivateKey(keytype, a, pp, length);

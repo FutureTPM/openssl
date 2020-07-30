@@ -74,3 +74,5 @@ dilithium_with_SHA512   sha512   dilithium
 dilithium_with_SHA3_256 sha3_256 dilithium
 dilithium_with_SHA3_384 sha3_384 dilithium
 dilithium_with_SHA3_512 sha3_512 dilithium
+
+NTTRU undef NTTRU

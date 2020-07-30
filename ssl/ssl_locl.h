@@ -32,6 +32,7 @@
 #include <openssl/dsa.h>
 #include <openssl/err.h>
 #include <openssl/kyber.h>
+#include <openssl/nttru.h>
 #include <openssl/rsa.h>
 #include <openssl/ssl.h>
 #include <openssl/symhacks.h>
@@ -201,6 +202,8 @@
 #define SSL_kDHEPSK 0x00000100U
 
 #define SSL_kKYBER 0x00000200U
+
+#define SSL_kNTTRU 0x00000400U
 
 /* all PSK */
 
@@ -416,11 +419,13 @@
 #define SSL_PKEY_ED448 8
 #define SSL_PKEY_DILITHIUM 9
 #define SSL_PKEY_KYBER 10
-#define SSL_PKEY_NUM 11
+#define SSL_PKEY_NTTRU 11
+#define SSL_PKEY_NUM 12
 
 /*-
  * SSL_kRSA   <- RSA_ENC
  * SSL_kKYBER <- KYBER_ENC
+ * SSL_kNTTRU <- NTTRU_ENC
  * SSL_kDH    <- DH_ENC & (RSA_ENC | RSA_SIGN | DSA_SIGN)
  * SSL_kDHE   <- RSA_ENC | RSA_SIGN | DSA_SIGN
  * SSL_aRSA   <- RSA_ENC | RSA_SIGN
@@ -1608,6 +1613,9 @@ typedef struct ssl3_state_st {
 #if !defined(OPENSSL_NO_KYBER)
     EVP_PKEY *kyber_pkey; /* holds short lived Kyber key */
 #endif
+#if !defined(OPENSSL_NO_NTTRU)
+    EVP_PKEY *nttru_pkey; /* holds short lived NTTRU key */
+#endif
     /* used for certificate requests */
     int cert_req;
     /* Certificate types in certificate request message. */
@@ -1720,10 +1728,10 @@ typedef struct ssl3_state_st {
 
   /* For clients: peer temporary key */
 #if !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_DH) ||                      \
-    !defined(OPENSSL_NO_KYBER)
+    !defined(OPENSSL_NO_KYBER) || !defined(OPENSSL_NO_NTTRU)
   /* The group_id for the DH/ECDH key */
   uint16_t group_id;
-  uint16_t key_type; /* 0 => ECDHE/DH; 1 => Kyber */
+  uint16_t key_type; /* 0 => ECDHE/DH; 1 => Kyber, 2 => NTTRU */
   EVP_PKEY *peer_tmp;
 #endif
 
@@ -2559,6 +2567,11 @@ __owur EVP_PKEY *ssl_generate_param_group(uint16_t id);
 __owur EVP_PKEY *ssl_generate_pkey_kyber(SSL *s);
 __owur EVP_PKEY *ssl_generate_kyber_wrapper(void);
 #endif /* OPENSSL_NO_KYBER */
+
+#ifndef OPENSSL_NO_NTTRU
+__owur EVP_PKEY *ssl_generate_pkey_nttru(SSL *s);
+__owur EVP_PKEY *ssl_generate_nttru_wrapper(void);
+#endif /* OPENSSL_NO_NTTRU */
 
 __owur int tls_curve_allowed(SSL *s, uint16_t curve, int op);
 void tls1_get_supported_groups(SSL *s, const uint16_t **pgroups,

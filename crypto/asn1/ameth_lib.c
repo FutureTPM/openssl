@@ -74,7 +74,6 @@ static const EVP_PKEY_ASN1_METHOD *pkey_asn1_find(int type)
  * search through engines and set *pe to a functional reference to the engine
  * implementing 'type' or NULL if no engine implements it.
  */
-
 const EVP_PKEY_ASN1_METHOD *EVP_PKEY_asn1_find(ENGINE **pe, int type)
 {
     const EVP_PKEY_ASN1_METHOD *t;

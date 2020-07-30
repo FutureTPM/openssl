@@ -82,6 +82,7 @@ extern const EVP_PKEY_ASN1_METHOD poly1305_asn1_meth;
 extern const EVP_PKEY_ASN1_METHOD hmac_asn1_meth;
 extern const EVP_PKEY_ASN1_METHOD rsa_asn1_meths[2];
 extern const EVP_PKEY_ASN1_METHOD kyber_asn1_meth;
+extern const EVP_PKEY_ASN1_METHOD nttru_asn1_meth;
 extern const EVP_PKEY_ASN1_METHOD dilithium_asn1_meth;
 extern const EVP_PKEY_ASN1_METHOD rsa_pss_asn1_meth;
 extern const EVP_PKEY_ASN1_METHOD siphash_asn1_meth;

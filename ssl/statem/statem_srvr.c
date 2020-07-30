@@ -314,8 +314,8 @@ static int send_server_key_exchange(SSL *s)
      * only send a ServerKeyExchange if DH or fortezza but we have a
      * sign only certificate PSK: may send PSK identity hints For
      * ECC ciphersuites, we send a serverKeyExchange message only if
-     * the cipher suite is either ECDH-anon, ECDHE or Kyber. In other
-     * cases, the server certificate contains the server's public key
+     * the cipher suite is either ECDH-anon, ECDHE, Kyber or NTTRU. In
+     * other cases, the server certificate contains the server's public key
      * for key exchange.
      */
     if (alg_k & (SSL_kDHE | SSL_kECDHE)
@@ -337,6 +337,10 @@ static int send_server_key_exchange(SSL *s)
 #ifndef OPENSSL_NO_KYBER
         /* Kyber: send ServerKeyExchange */
         || (alg_k & SSL_kKYBER)
+#endif
+#ifndef OPENSSL_NO_NTTRU
+        /* NTTRU: send ServerKeyExchange */
+        || (alg_k & SSL_kNTTRU)
 #endif
         ) {
         return 1;
@@ -2485,6 +2489,10 @@ int tls_construct_server_key_exchange(SSL *s, WPACKET *pkt)
     const unsigned char *public_key = NULL;
     int public_key_size = 0;
 #endif
+#ifndef OPENSSL_NO_NTTRU
+    const unsigned char *nttru_public_key = NULL;
+    int nttru_public_key_size = 0;
+#endif
     const SIGALG_LOOKUP *lu = s->s3->tmp.sigalg;
     int i;
     unsigned long type;
@@ -2673,6 +2681,48 @@ int tls_construct_server_key_exchange(SSL *s, WPACKET *pkt)
         r[3] = NULL;
     } else
 #endif                          /* !OPENSSL_NO_KYBER */
+#ifndef OPENSSL_NO_NTTRU
+    if (type & SSL_kNTTRU) {
+        if (s->s3->tmp.pkey != NULL) {
+            SSLfatal(s, SSL_AD_INTERNAL_ERROR,
+                     SSL_F_TLS_CONSTRUCT_SERVER_KEY_EXCHANGE,
+                     ERR_R_INTERNAL_ERROR);
+            goto err;
+        }
+
+        pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_NTTRU, NULL);
+        if (pctx == NULL) {
+            SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL_GENERATE_PKEY_GROUP,
+                     ERR_R_MALLOC_FAILURE);
+            goto err;
+        }
+        if (EVP_PKEY_keygen_init(pctx) <= 0) {
+            SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL_GENERATE_PKEY_GROUP,
+                     ERR_R_EVP_LIB);
+            goto err;
+        }
+        /* Generate a new ephemeral key */
+        if (EVP_PKEY_keygen(pctx, &s->s3->tmp.pkey) <= 0) {
+            /* SSLfatal() already called */
+            goto err;
+        }
+
+        NTTRU *nttru = EVP_PKEY_get0_NTTRU(s->s3->tmp.pkey);
+        nttru_get0_key(nttru, &nttru_public_key, &nttru_public_key_size);
+
+        EVP_PKEY_CTX_free(pctx);
+        pctx = NULL;
+
+        /*
+         * We'll generate the serverKeyExchange message explicitly so we
+         * can set these to NULLs
+         */
+        r[0] = NULL;
+        r[1] = NULL;
+        r[2] = NULL;
+        r[3] = NULL;
+    } else
+#endif                          /* !OPENSSL_NO_NTTRU */
 #ifndef OPENSSL_NO_SRP
     if (type & SSL_kSRP) {
         if ((s->srp_ctx.N == NULL) ||
@@ -2812,6 +2862,22 @@ int tls_construct_server_key_exchange(SSL *s, WPACKET *pkt)
     }
 #endif
 
+#ifndef OPENSSL_NO_NTTRU
+    if (type & SSL_kNTTRU) {
+      /*
+       * Send back to client the remaining ciphertexts to generate the final
+       * shared key.
+       */
+      if (!WPACKET_put_bytes_u16(pkt, NTTRU_KEX_CODE)
+          || !WPACKET_sub_memcpy_u16(pkt, nttru_public_key, nttru_public_key_size)) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR,
+                 SSL_F_TLS_CONSTRUCT_SERVER_KEY_EXCHANGE,
+                 ERR_R_INTERNAL_ERROR);
+        goto err;
+      }
+    }
+#endif
+
     /* not anonymous */
     if (lu != NULL) {
         EVP_PKEY *pkey = s->s3->tmp.cert->privatekey;
@@ -2892,6 +2958,9 @@ int tls_construct_server_key_exchange(SSL *s, WPACKET *pkt)
     OPENSSL_free(encodedPoint);
 #endif
 #ifndef OPENSSL_NO_KYBER
+    EVP_PKEY_CTX_free(pctx);
+#endif
+#ifndef OPENSSL_NO_NTTRU
     EVP_PKEY_CTX_free(pctx);
 #endif
     EVP_MD_CTX_free(md_ctx);
@@ -3281,6 +3350,79 @@ static int tls_process_cke_kyber(SSL *s, PACKET *pkt)
 #endif
 }
 
+static int tls_process_cke_nttru(SSL *s, PACKET *pkt)
+{
+#ifndef OPENSSL_NO_NTTRU
+    EVP_PKEY_CTX *ekey_ctx;
+    EVP_PKEY *ekey = s->s3->tmp.pkey;
+    unsigned char premaster_secret[32];
+    const unsigned char *ciphertext;
+    size_t outlen = 32, ciphertext_size;
+    int ret = 0;
+    PACKET encdata;
+
+    /*
+     * Ephemeral private key
+     */
+    if (ekey == NULL) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PROCESS_CKE_NTTRU,
+                 SSL_R_MISSING_TMP_NTTRU_KEY);
+        goto err;
+    }
+    ekey_ctx = EVP_PKEY_CTX_new(ekey, NULL);
+    if (ekey_ctx == NULL) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PROCESS_CKE_NTTRU,
+                 ERR_R_MALLOC_FAILURE);
+        return 0;
+    }
+
+    /* Get ciphertexts sent from client */
+    if (!PACKET_as_length_prefixed_2(pkt, &encdata)) {
+        SSLfatal(s, SSL_AD_DECODE_ERROR, SSL_F_TLS_PROCESS_CKE_NTTRU,
+                 SSL_R_DECRYPTION_FAILED);
+        goto err;
+    }
+
+    ciphertext_size = PACKET_remaining(&encdata);
+    ciphertext = PACKET_data(&encdata);
+
+    /*
+     * Get first key by decapsulating the first cipher text
+     * sent by the client
+     */
+    if (EVP_PKEY_decrypt_init(ekey_ctx) <= 0) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_STOC_KEY_SHARE,
+                 SSL_R_LIBRARY_BUG);
+        return EXT_RETURN_FAIL;
+    }
+    if (EVP_PKEY_decrypt(ekey_ctx, premaster_secret, &outlen,
+                ciphertext, ciphertext_size) <= 0) {
+        SSLfatal(s, SSL_AD_DECODE_ERROR, SSL_F_TLS_PROCESS_CKE_NTTRU,
+                 SSL_R_DECRYPTION_FAILED);
+        goto err;
+    }
+
+    /* Generate master secret */
+    if (!ssl_generate_master_secret(s, premaster_secret,
+                                    sizeof(premaster_secret), 0)) {
+        /* SSLfatal() already called */
+        goto err;
+    }
+
+    ret = 1;
+    EVP_PKEY_free(s->s3->tmp.pkey);
+    s->s3->tmp.pkey = NULL;
+ err:
+
+    return ret;
+#else
+    /* Should never happen */
+    SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PROCESS_CKE_NTTRU,
+             ERR_R_INTERNAL_ERROR);
+    return 0;
+#endif
+}
+
 static int tls_process_cke_dhe(SSL *s, PACKET *pkt)
 {
 #ifndef OPENSSL_NO_DH
@@ -3614,6 +3756,11 @@ MSG_PROCESS_RETURN tls_process_client_key_exchange(SSL *s, PACKET *pkt)
             /* SSLfatal() already called */
             goto err;
         }
+    } else if (alg_k & SSL_kNTTRU) {
+      if (!tls_process_cke_nttru(s, pkt)) {
+        /* SSLfatal() already called */
+        goto err;
+      }
     } else if (alg_k & (SSL_kDHE | SSL_kDHEPSK)) {
         if (!tls_process_cke_dhe(s, pkt)) {
             /* SSLfatal() already called */

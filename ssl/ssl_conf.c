@@ -592,6 +592,7 @@ static const ssl_conf_cmd_tbl ssl_conf_cmds[] = {
     SSL_CONF_CMD_SWITCH("anti_replay", SSL_CONF_FLAG_SERVER),
     SSL_CONF_CMD_SWITCH("no_anti_replay", SSL_CONF_FLAG_SERVER),
     SSL_CONF_CMD_SWITCH("no_kyber", 0),
+    SSL_CONF_CMD_SWITCH("no_nttru", 0),
     SSL_CONF_CMD_STRING(SignatureAlgorithms, "sigalgs", 0),
     SSL_CONF_CMD_STRING(ClientSignatureAlgorithms, "client_sigalgs", 0),
     SSL_CONF_CMD_STRING(Curves, "curves", 0),
@@ -676,6 +677,8 @@ static const ssl_switch_tbl ssl_cmd_switches[] = {
     {SSL_OP_NO_ANTI_REPLAY, 0},
     /* no_kyber */
     {SSL_OP_NO_KYBER, 0},
+    /* no_nttru */
+    {SSL_OP_NO_NTTRU, 0},
 };
 
 static int ssl_conf_cmd_skip_prefix(SSL_CONF_CTX *cctx, const char **pcmd) {

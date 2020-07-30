@@ -18,6 +18,7 @@
 #  include <openssl/bn.h>
 #  include <openssl/rsa.h>
 #  include <openssl/kyber.h>
+#  include <openssl/nttru.h>
 #  include <openssl/dilithium.h>
 #  include <openssl/dsa.h>
 #  include <openssl/dh.h>
@@ -49,6 +50,7 @@ extern "C" {
 # define ENGINE_METHOD_EC                (unsigned int)0x0800
 # define ENGINE_METHOD_KYBER             (unsigned int)0x1000
 # define ENGINE_METHOD_DILITHIUM         (unsigned int)0x2000
+# define ENGINE_METHOD_NTTRU             (unsigned int)0x4000
 /* Obvious all-or-nothing cases. */
 # define ENGINE_METHOD_ALL               (unsigned int)0xFFFF
 # define ENGINE_METHOD_NONE              (unsigned int)0x0000
@@ -371,6 +373,10 @@ int ENGINE_register_Dilithium(ENGINE *e);
 void ENGINE_unregister_Dilithium(ENGINE *e);
 void ENGINE_register_all_Dilithium(void);
 
+int ENGINE_register_NTTRU(ENGINE *e);
+void ENGINE_unregister_NTTRU(ENGINE *e);
+void ENGINE_register_all_NTTRU(void);
+
 int ENGINE_register_DSA(ENGINE *e);
 void ENGINE_unregister_DSA(ENGINE *e);
 void ENGINE_register_all_DSA(void);
@@ -482,6 +488,7 @@ int ENGINE_set_name(ENGINE *e, const char *name);
 int ENGINE_set_RSA(ENGINE *e, const RSA_METHOD *rsa_meth);
 int ENGINE_set_Kyber(ENGINE *e, const KYBER_METHOD *kyber_meth);
 int ENGINE_set_Dilithium(ENGINE *e, const DILITHIUM_METHOD *dilithium_meth);
+int ENGINE_set_NTTRU(ENGINE *e, const NTTRU_METHOD *nttru_meth);
 int ENGINE_set_DSA(ENGINE *e, const DSA_METHOD *dsa_meth);
 int ENGINE_set_EC(ENGINE *e, const EC_KEY_METHOD *ecdsa_meth);
 int ENGINE_set_DH(ENGINE *e, const DH_METHOD *dh_meth);
@@ -527,6 +534,7 @@ const char *ENGINE_get_name(const ENGINE *e);
 const RSA_METHOD *ENGINE_get_RSA(const ENGINE *e);
 const KYBER_METHOD *ENGINE_get_Kyber(const ENGINE *e);
 const DILITHIUM_METHOD *ENGINE_get_Dilithium(const ENGINE *e);
+const NTTRU_METHOD *ENGINE_get_NTTRU(const ENGINE *e);
 const DSA_METHOD *ENGINE_get_DSA(const ENGINE *e);
 const EC_KEY_METHOD *ENGINE_get_EC(const ENGINE *e);
 const DH_METHOD *ENGINE_get_DH(const ENGINE *e);
@@ -605,6 +613,7 @@ int ENGINE_load_ssl_client_cert(ENGINE *e, SSL *s,
 ENGINE *ENGINE_get_default_RSA(void);
 ENGINE *ENGINE_get_default_Kyber(void);
 ENGINE *ENGINE_get_default_Dilithium(void);
+ENGINE *ENGINE_get_default_NTTRU(void);
 /* Same for the other "methods" */
 ENGINE *ENGINE_get_default_DSA(void);
 ENGINE *ENGINE_get_default_EC(void);
@@ -628,6 +637,7 @@ ENGINE *ENGINE_get_pkey_asn1_meth_engine(int nid);
 int ENGINE_set_default_RSA(ENGINE *e);
 int ENGINE_set_default_Kyber(ENGINE *e);
 int ENGINE_set_default_Dilithium(ENGINE *e);
+int ENGINE_set_default_NTTRU(ENGINE *e);
 int ENGINE_set_default_string(ENGINE *e, const char *def_list);
 /* Same for the other "methods" */
 int ENGINE_set_default_DSA(ENGINE *e);

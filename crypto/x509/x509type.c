@@ -54,6 +54,9 @@ int X509_certificate_type(const X509 *x, const EVP_PKEY *pkey)
     case EVP_PKEY_KYBER:
         ret = EVP_PK_KYBER | EVP_PKT_EXCH | EVP_PKT_ENC;
         break;
+    case EVP_PKEY_NTTRU:
+      ret = EVP_PK_NTTRU | EVP_PKT_EXCH | EVP_PKT_ENC;
+      break;
     case EVP_PKEY_DILITHIUM:
         ret = EVP_PK_DILITHIUM | EVP_PKT_SIGN;
         break;

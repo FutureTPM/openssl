@@ -50,7 +50,7 @@ INCLUDE_MAIN___test_libtestutil_OLB = /INCLUDE=MAIN
           recordlentest drbgtest drbg_cavs_test sslbuffertest \
           time_offset_test pemtest ssl_cert_table_internal_test ciphername_test \
           servername_test ocspapitest rsa_mp_test fatalerrtest tls13ccstest \
-          sysdefaulttest errtest gosttest kyber_test dilithium_test
+          sysdefaulttest errtest gosttest kyber_test nttru_test dilithium_test
 
   SOURCE[versions]=versions.c
   INCLUDE[versions]=../include
@@ -166,6 +166,10 @@ INCLUDE_MAIN___test_libtestutil_OLB = /INCLUDE=MAIN
   SOURCE[kyber_test]=kyber_test.c
   INCLUDE[kyber_test]=../include
   DEPEND[kyber_test]=../libcrypto libtestutil.a
+
+  SOURCE[nttru_test]=nttru_test.c
+  INCLUDE[nttru_test]=../include
+  DEPEND[nttru_test]=../libcrypto libtestutil.a
 
   SOURCE[dilithium_test]=dilithium_test.c
   INCLUDE[dilithium_test]=../include

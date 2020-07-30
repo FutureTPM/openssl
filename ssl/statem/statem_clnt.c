@@ -24,6 +24,7 @@
 #include <openssl/engine.h>
 #include <internal/cryptlib.h>
 #include <openssl/kyber.h>
+#include <openssl/nttru.h>
 
 static MSG_PROCESS_RETURN tls_process_as_hello_retry_request(SSL *s, PACKET *pkt);
 static MSG_PROCESS_RETURN tls_process_encrypted_extensions(SSL *s, PACKET *pkt);
@@ -66,7 +67,7 @@ static int key_exchange_expected(SSL *s)
      * Can't skip server key exchange if this is an ephemeral
      * ciphersuite or for SRP
      */
-    if (alg_k & (SSL_kKYBER | SSL_kDHE | SSL_kECDHE | SSL_kDHEPSK | SSL_kECDHEPSK
+    if (alg_k & (SSL_kKYBER | SSL_kNTTRU | SSL_kDHE | SSL_kECDHE | SSL_kDHEPSK | SSL_kECDHEPSK
                  | SSL_kSRP)) {
         return 1;
     }
@@ -1777,8 +1778,9 @@ static MSG_PROCESS_RETURN tls_process_as_hello_retry_request(SSL *s,
     extensions = NULL;
 
     if (s->ext.tls13_cookie_len == 0
-#if !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_DH) || !defined(OPENSSL_NO_KYBER)
-        && s->s3->tmp.pkey != NULL && s->s3->tmp.kyber_pkey != NULL
+#if !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_DH) || !defined(OPENSSL_NO_KYBER)\
+  || !defined(OPENSSL_NO_NTTRU)
+        && s->s3->tmp.pkey != NULL && (s->s3->tmp.kyber_pkey != NULL || s->s3->tmp.kyber_pkey != NULL)
 #endif
         ) {
         /*
@@ -2328,6 +2330,77 @@ static int tls_process_ske_kyber(SSL *s, PACKET *pkt, EVP_PKEY **pkey)
 #endif
 }
 
+static int tls_process_ske_nttru(SSL *s, PACKET *pkt, EVP_PKEY **pkey)
+{
+#ifndef OPENSSL_NO_NTTRU
+    PACKET public_key;
+    NTTRU *nttru = NULL;
+    unsigned int key_type = 0;
+
+    /*
+     * Extract cipher text and public key sent by the server.
+     */
+    if (!PACKET_get_net_2(pkt, &key_type)
+            || !PACKET_get_length_prefixed_2(pkt, &public_key)) {
+        SSLfatal(s, SSL_AD_DECODE_ERROR, SSL_F_TLS_PROCESS_SKE_NTTRU,
+                 ERR_R_INTERNAL_ERROR);
+        return 0;
+    }
+
+    if (key_type != NTTRU_KEX_CODE) {
+        SSLfatal(s, SSL_AD_DECODE_ERROR, SSL_F_TLS_PROCESS_SKE_NTTRU,
+                 SSL_R_BAD_NTTRU_KEY);
+        return 0;
+    }
+
+    /*
+     * Copy ephemeral key to local variable
+     */
+    if ((s->s3->peer_tmp = ssl_generate_nttru_wrapper()) == NULL) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PARSE_CTOS_KEY_SHARE,
+               SSL_R_UNABLE_TO_GENERATE_NTTRU_WRAPPER);
+        return 0;
+    }
+
+    if ((nttru = nttru_new()) == NULL) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PARSE_CTOS_KEY_SHARE,
+                 ERR_R_INTERNAL_ERROR);
+        return 0;
+    }
+    if (!nttru_set0_key(nttru,
+                (uint8_t *)PACKET_data(&public_key), PACKET_remaining(&public_key))) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PARSE_CTOS_KEY_SHARE,
+                 ERR_R_INTERNAL_ERROR);
+        return 0;
+    }
+    /* if (!nttru_set0_crt_params(nttru, 2)) { */
+    /*     SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PARSE_CTOS_KEY_SHARE, */
+    /*              ERR_R_INTERNAL_ERROR); */
+    /*     return 0; */
+    /* } */
+
+    if (!EVP_PKEY_set1_NTTRU(s->s3->peer_tmp, nttru)) {
+        SSLfatal(s, SSL_AD_ILLEGAL_PARAMETER,
+                 SSL_F_TLS_PARSE_CTOS_KEY_SHARE, SSL_R_BAD_NTTRU_KEY);
+        return 0;
+    }
+
+    if (s->s3->tmp.new_cipher->algorithm_auth & SSL_aECDSA)
+        *pkey = X509_get0_pubkey(s->session->peer);
+    else if (s->s3->tmp.new_cipher->algorithm_auth & SSL_aRSA)
+        *pkey = X509_get0_pubkey(s->session->peer);
+    else if (s->s3->tmp.new_cipher->algorithm_auth & SSL_aDILITHIUM)
+        *pkey = X509_get0_pubkey(s->session->peer);
+    /* else anonymous Nttru, so no certificate or pkey. */
+
+    return 1;
+#else
+    !SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PROCESS_SKE_NTTRU,
+             ERR_R_INTERNAL_ERROR);
+    return 0;
+#endif
+}
+
 MSG_PROCESS_RETURN tls_process_key_exchange(SSL *s, PACKET *pkt)
 {
     long alg_k;
@@ -2340,7 +2413,7 @@ MSG_PROCESS_RETURN tls_process_key_exchange(SSL *s, PACKET *pkt)
 
     save_param_start = *pkt;
 
-#if !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_DH) || !defined(OPENSSL_NO_KYBER)
+#if !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_DH) || !defined(OPENSSL_NO_KYBER) || !defined(OPENSSL_NO_NTTRU)
     EVP_PKEY_free(s->s3->peer_tmp);
     s->s3->peer_tmp = NULL;
 #endif
@@ -2374,6 +2447,11 @@ MSG_PROCESS_RETURN tls_process_key_exchange(SSL *s, PACKET *pkt)
             /* SSLfatal() already called */
             goto err;
         }
+    } else if (alg_k & SSL_kNTTRU) {
+      if (!tls_process_ske_nttru(s, pkt, &pkey)) {
+        /* SSLfatal() already called */
+        goto err;
+      }
     } else if (alg_k) {
         SSLfatal(s, SSL_AD_UNEXPECTED_MESSAGE, SSL_F_TLS_PROCESS_KEY_EXCHANGE,
                  SSL_R_UNEXPECTED_MESSAGE);
@@ -3288,6 +3366,102 @@ static int tls_construct_cke_kyber(SSL *s, WPACKET *pkt)
 #endif
 }
 
+static int tls_construct_cke_nttru(SSL *s, WPACKET *pkt)
+{
+#ifndef OPENSSL_NO_NTTRU
+    unsigned char *pms = NULL, *msg = NULL, *ciphertext = NULL;
+    size_t pmslen = 0, msglen = 0, ciphertext_size = 0;
+    EVP_PKEY_CTX *p_eph_ctx = NULL;
+    int ret = 0;
+
+    /*
+     * Ephemeral public key
+     */
+    p_eph_ctx = EVP_PKEY_CTX_new(s->s3->peer_tmp, NULL);
+    if (p_eph_ctx == NULL) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PROCESS_CKE_NTTRU,
+                 ERR_R_MALLOC_FAILURE);
+        return 0;
+    }
+
+    /*
+     * I don't know the size of the cipher text before the encapsulation
+     * process is complete, thus I will allocate a buffer larger than the
+     * most secure mode.
+     */
+    msglen = 4096;
+    if ((msg = OPENSSL_malloc(msglen)) == NULL) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_CKE_NTTRU,
+                 ERR_R_MALLOC_FAILURE);
+        return 0;
+    }
+
+    pmslen = 32;
+    if ((pms = OPENSSL_malloc(pmslen)) == NULL) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_CKE_NTTRU,
+                 ERR_R_MALLOC_FAILURE);
+        goto err;
+    }
+
+    /* Create ciphertext buffers to be sent to the server */
+    if ((ciphertext = OPENSSL_malloc(msglen)) == NULL) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_CKE_NTTRU,
+                 ERR_R_MALLOC_FAILURE);
+        goto err;
+    }
+
+    /*
+     * Generating all shared secrets
+     */
+
+    /*
+     * This call to the encrypt method is actually an encapsulation. I know
+     * I'm not following the recommended API guidelines but I want to check if
+     * this works first.
+     */
+    /* TODO */
+    if (EVP_PKEY_encrypt_init(p_eph_ctx) <= 0) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_STOC_KEY_SHARE,
+                 SSL_R_LIBRARY_BUG);
+        goto err;
+    }
+    if (EVP_PKEY_encrypt(p_eph_ctx, msg, &msglen, NULL, 0) <= 0) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_CKE_NTTRU,
+                 SSL_R_LIBRARY_BUG);
+        goto err;
+    }
+
+    /* Copy shared key to the local SSL state struct */
+    memmove(pms, msg, 32);
+    /* Cipher text to send will start at msg + 32 */
+    memmove(ciphertext, msg + 32, msglen - 32);
+    ciphertext_size = msglen - 32;
+
+    /*
+     * Send generated ciphertexts to the server
+     */
+    if (!WPACKET_sub_memcpy_u16(pkt, ciphertext, ciphertext_size)) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_CKE_NTTRU,
+                 ERR_R_INTERNAL_ERROR);
+        goto err;
+    }
+
+    s->s3->tmp.pms = pms;
+    s->s3->tmp.pmslen = pmslen;
+    pms = NULL;
+    ret = 1;
+ err:
+    OPENSSL_clear_free(pms, pmslen);
+    OPENSSL_clear_free(ciphertext, 4096);
+    OPENSSL_clear_free(msg, 4096);
+    return ret;
+#else
+    SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_CKE_NTTRU,
+             ERR_R_INTERNAL_ERROR);
+    return 0;
+#endif
+}
+
 static int tls_construct_cke_ecdhe(SSL *s, WPACKET *pkt)
 {
 #ifndef OPENSSL_NO_EC
@@ -3515,6 +3689,9 @@ int tls_construct_client_key_exchange(SSL *s, WPACKET *pkt)
     } else if (alg_k & SSL_kKYBER) {
         if (!tls_construct_cke_kyber(s, pkt))
             goto err;
+    } else if (alg_k & SSL_kNTTRU) {
+      if (!tls_construct_cke_nttru(s, pkt))
+        goto err;
     } else if (alg_k & SSL_kGOST) {
         if (!tls_construct_cke_gost(s, pkt))
             goto err;
@@ -3806,6 +3983,13 @@ int ssl3_check_cert_and_algorithm(SSL *s)
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL3_CHECK_CERT_AND_ALGORITHM,
                  ERR_R_INTERNAL_ERROR);
         return 0;
+    }
+#endif
+#ifndef OPENSSL_NO_NTTRU
+    if ((alg_k & SSL_kNTTRU) && (s->s3->peer_tmp == NULL)) {
+      SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL3_CHECK_CERT_AND_ALGORITHM,
+               ERR_R_INTERNAL_ERROR);
+      return 0;
     }
 #endif
 

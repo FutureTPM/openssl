@@ -32,6 +32,8 @@ int dilithium_set0_key(Dilithium *r, uint8_t *public_key,
 int dilithium_set0_crt_params(Dilithium *r, int mode);
 void dilithium_get0_key(const Dilithium *r,
                   const uint8_t **public_key, int *public_key_size);
+void dilithium_get0_privkey(const Dilithium *r,
+                          const uint8_t **private_key, int *private_key_size);
 void dilithium_get0_crt_params(const Dilithium *r, const int **mode);
 
 void dilithium_clear_flags(Dilithium *r, int flags);

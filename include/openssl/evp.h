@@ -40,10 +40,12 @@
 # define EVP_PK_KYBER      0x0800
 # define EVP_PK_DILITHIUM  0x1000
 # define EVP_PKS_DILITHIUM 0x2000
+# define EVP_PK_NTTRU      0x4000
 
 # define EVP_PKEY_NONE   NID_undef
 # define EVP_PKEY_KYBER  NID_kyber
 # define EVP_PKEY_DILITHIUM  NID_dilithium
+# define EVP_PKEY_NTTRU  NID_NTTRU
 # define EVP_PKEY_RSA    NID_rsaEncryption
 # define EVP_PKEY_RSA2   NID_rsa
 # define EVP_PKEY_RSA_PSS NID_rsassaPss
@@ -419,6 +421,11 @@ typedef int (EVP_PBE_KEYGEN) (EVP_CIPHER_CTX *ctx, const char *pass,
 # ifndef OPENSSL_NO_DILITHIUM
 #  define EVP_PKEY_assign_Dilithium(pkey,dilithium) EVP_PKEY_assign((pkey),EVP_PKEY_DILITHIUM,\
                                         (char *)(dilithium))
+# endif
+
+# ifndef OPENSSL_NO_NTTRU
+#  define EVP_PKEY_assign_NTTRU(pkey,nttru) EVP_PKEY_assign((pkey),EVP_PKEY_NTTRU, \
+                                                            (char *)(nttru))
 # endif
 
 # ifndef OPENSSL_NO_DSA
@@ -1040,6 +1047,12 @@ int EVP_PKEY_set1_Dilithium(EVP_PKEY *pkey, struct dilithium_st *key);
 struct dilithium_st *EVP_PKEY_get0_Dilithium(EVP_PKEY *pkey);
 struct dilithium_st *EVP_PKEY_get1_Dilithium(EVP_PKEY *pkey);
 # endif
+# ifndef OPENSSL_NO_NTTRU
+  struct nttru_st;
+  int EVP_PKEY_set1_NTTRU(EVP_PKEY *pkey, struct nttru_st *key);
+  struct nttru_st *EVP_PKEY_get0_NTTRU(EVP_PKEY *pkey);
+  struct nttru_st *EVP_PKEY_get1_NTTRU(EVP_PKEY *pkey);
+# endif
 # ifndef OPENSSL_NO_DSA
 struct dsa_st;
 int EVP_PKEY_set1_DSA(EVP_PKEY *pkey, struct dsa_st *key);
@@ -1096,6 +1109,10 @@ size_t EVP_PKEY_get1_tls_encodedpoint(EVP_PKEY *pkey, unsigned char **ppt);
 int EVP_PKEY_set1_tls_kyber_pk(EVP_PKEY *pkey,
                                    const unsigned char *pk, size_t pklen);
 size_t EVP_PKEY_get1_tls_kyber_pk(EVP_PKEY *pkey, unsigned char **ppt);
+
+int EVP_PKEY_set1_tls_nttru_pk(EVP_PKEY *pkey,
+                               const unsigned char *pk, size_t pklen);
+size_t EVP_PKEY_get1_tls_nttru_pk(EVP_PKEY *pkey, unsigned char **ppt);
 
 int EVP_CIPHER_type(const EVP_CIPHER *ctx);
 
@@ -1174,6 +1191,9 @@ int EVP_PBE_get(int *ptype, int *ppbe_nid, size_t num);
 
 # define ASN1_PKEY_CTRL_SET1_TLS_DILITHIUM_PK   0xd
 # define ASN1_PKEY_CTRL_GET1_TLS_DILITHIUM_PK   0xe
+
+# define ASN1_PKEY_CTRL_SET1_TLS_NTTRU_PK   0x10
+# define ASN1_PKEY_CTRL_GET1_TLS_NTTRU_PK   0x11
 
 int EVP_PKEY_asn1_get_count(void);
 const EVP_PKEY_ASN1_METHOD *EVP_PKEY_asn1_get0(int idx);

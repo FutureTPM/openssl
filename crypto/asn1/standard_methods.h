@@ -63,5 +63,7 @@ static const EVP_PKEY_ASN1_METHOD *standard_methods[] = {
 #ifndef OPENSSL_NO_DILITHIUM
     &dilithium_asn1_meth,
 #endif
+#ifndef OPENSSL_NO_NTTRU
+    &nttru_asn1_meth,
+#endif
 };
-

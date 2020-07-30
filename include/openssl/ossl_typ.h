@@ -113,6 +113,9 @@ typedef struct rsa_meth_st RSA_METHOD;
 typedef struct kyber_st Kyber;
 typedef struct kyber_meth_st KYBER_METHOD;
 
+typedef struct nttru_st NTTRU;
+typedef struct nttru_meth_st NTTRU_METHOD;
+
 typedef struct dilithium_st Dilithium;
 typedef struct dilithium_meth_st DILITHIUM_METHOD;
 

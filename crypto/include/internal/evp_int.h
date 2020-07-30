@@ -412,6 +412,9 @@ struct evp_pkey_st {
 # ifndef OPENSSL_NO_DILITHIUM
         struct dilithium_st *dilithium;     /* Dilithium */
 # endif
+# ifndef OPENSSL_NO_NTTRU
+      struct nttru_st *nttru;     /* NTTRU */
+# endif
 # ifndef OPENSSL_NO_DSA
         struct dsa_st *dsa;     /* DSA */
 # endif

@@ -395,6 +395,73 @@ int i2d_Dilithium_PUBKEY_bio(BIO *bp, Dilithium *dilithium)
 }
 #endif
 
+#ifndef OPENSSL_NO_NTTRU
+
+# ifndef OPENSSL_NO_STDIO
+NTTRU *d2i_NTTRUPrivateKey_fp(FILE *fp, NTTRU **nttru)
+{
+    return ASN1_d2i_fp_of(NTTRU, nttru_new, d2i_NttruPrivateKey, fp, nttru);
+}
+
+int i2d_NTTRUPrivateKey_fp(FILE *fp, NTTRU *nttru)
+{
+    return ASN1_i2d_fp_of(NTTRU, i2d_NttruPrivateKey, fp, nttru);
+}
+
+NTTRU *d2i_NTTRUPublicKey_fp(FILE *fp, NTTRU **nttru)
+{
+    return ASN1_d2i_fp_of(NTTRU, nttru_new, d2i_NttruPublicKey, fp, nttru);
+}
+
+NTTRU *d2i_NTTRU_PUBKEY_fp(FILE *fp, NTTRU **nttru)
+{
+    return ASN1_d2i_fp((void *(*)(void))
+                       nttru_new, (D2I_OF(void)) d2i_NTTRU_PUBKEY, fp,
+                       (void **)nttru);
+}
+
+int i2d_NTTRUPublicKey_fp(FILE *fp, NTTRU *nttru)
+{
+    return ASN1_i2d_fp_of(NTTRU, i2d_NttruPublicKey, fp, nttru);
+}
+
+int i2d_NTTRU_PUBKEY_fp(FILE *fp, NTTRU *nttru)
+{
+    return ASN1_i2d_fp((I2D_OF(void))i2d_NTTRU_PUBKEY, fp, nttru);
+}
+# endif
+
+NTTRU *d2i_NTTRUPrivateKey_bio(BIO *bp, NTTRU **nttru)
+{
+    return ASN1_d2i_bio_of(NTTRU, nttru_new, d2i_NttruPrivateKey, bp, nttru);
+}
+
+int i2d_NTTRUPrivateKey_bio(BIO *bp, NTTRU *nttru)
+{
+    return ASN1_i2d_bio_of(NTTRU, i2d_NttruPrivateKey, bp, nttru);
+}
+
+NTTRU *d2i_NTTRUPublicKey_bio(BIO *bp, NTTRU **nttru)
+{
+    return ASN1_d2i_bio_of(NTTRU, nttru_new, d2i_NttruPublicKey, bp, nttru);
+}
+
+NTTRU *d2i_NTTRU_PUBKEY_bio(BIO *bp, NTTRU **nttru)
+{
+    return ASN1_d2i_bio_of(NTTRU, nttru_new, d2i_NTTRU_PUBKEY, bp, nttru);
+}
+
+int i2d_NTTRUPublicKey_bio(BIO *bp, NTTRU *nttru)
+{
+    return ASN1_i2d_bio_of(NTTRU, i2d_NttruPublicKey, bp, nttru);
+}
+
+int i2d_NTTRU_PUBKEY_bio(BIO *bp, NTTRU *nttru)
+{
+    return ASN1_i2d_bio_of(NTTRU, i2d_NTTRU_PUBKEY, bp, nttru);
+}
+#endif
+
 #ifndef OPENSSL_NO_DSA
 # ifndef OPENSSL_NO_STDIO
 DSA *d2i_DSAPrivateKey_fp(FILE *fp, DSA **dsa)

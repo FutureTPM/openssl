@@ -24,6 +24,7 @@
 # if OPENSSL_API_COMPAT < 0x10100000L
 #  include <openssl/rsa.h>
 #  include <openssl/kyber.h>
+#  include <openssl/nttru.h>
 #  include <openssl/dilithium.h>
 #  include <openssl/dsa.h>
 #  include <openssl/dh.h>
@@ -422,6 +423,14 @@ int i2d_DilithiumPublicKey_fp(FILE *fp, Dilithium *dilithium);
 Dilithium *d2i_Dilithium_PUBKEY_fp(FILE *fp, Dilithium **dilithium);
 int i2d_Dilithium_PUBKEY_fp(FILE *fp, Dilithium *dilithium);
 #  endif
+#  ifndef OPENSSL_NO_NTTRU
+  NTTRU *d2i_NTTRUPrivateKey_fp(FILE *fp, NTTRU **nttru);
+  int i2d_NTTRUPrivateKey_fp(FILE *fp, NTTRU *nttru);
+  NTTRU *d2i_NTTRUPublicKey_fp(FILE *fp, NTTRU **nttru);
+  int i2d_NTTRUPublicKey_fp(FILE *fp, NTTRU *nttru);
+  NTTRU *d2i_NTTRU_PUBKEY_fp(FILE *fp, NTTRU **nttru);
+  int i2d_NTTRU_PUBKEY_fp(FILE *fp, NTTRU *nttru);
+#  endif
 #  ifndef OPENSSL_NO_DSA
 DSA *d2i_DSA_PUBKEY_fp(FILE *fp, DSA **dsa);
 int i2d_DSA_PUBKEY_fp(FILE *fp, DSA *dsa);
@@ -475,6 +484,14 @@ Dilithium *d2i_DilithiumPublicKey_bio(BIO *bp, Dilithium **dilithium);
 int i2d_DilithiumPublicKey_bio(BIO *bp, Dilithium *dilithium);
 Dilithium *d2i_Dilithium_PUBKEY_bio(BIO *bp, Dilithium **dilithium);
 int i2d_Dilithium_PUBKEY_bio(BIO *bp, Dilithium *dilithium);
+#  endif
+#  ifndef OPENSSL_NO_NTTRU
+  NTTRU *d2i_NTTRUPrivateKey_bio(BIO *bp, NTTRU **nttru);
+  int i2d_NTTRUPrivateKey_bio(BIO *bp, NTTRU *nttru);
+  NTTRU *d2i_NTTRUPublicKey_bio(BIO *bp, NTTRU **nttru);
+  int i2d_NTTRUPublicKey_bio(BIO *bp, NTTRU *nttru);
+  NTTRU *d2i_NTTRU_PUBKEY_bio(BIO *bp, NTTRU **nttru);
+  int i2d_NTTRU_PUBKEY_bio(BIO *bp, NTTRU *nttru);
 #  endif
 #  ifndef OPENSSL_NO_DSA
 DSA *d2i_DSA_PUBKEY_bio(BIO *bp, DSA **dsa);
@@ -557,6 +574,10 @@ Kyber *d2i_KYBER_PUBKEY(Kyber **a, const unsigned char **pp, long length);
 # ifndef OPENSSL_NO_DILITHIUM
 int i2d_DILITHIUM_PUBKEY(Dilithium *a, unsigned char **pp);
 Dilithium *d2i_DILITHIUM_PUBKEY(Dilithium **a, const unsigned char **pp, long length);
+# endif
+# ifndef OPENSSL_NO_NTTRU
+  int i2d_NTTRU_PUBKEY(NTTRU *a, unsigned char **pp);
+  NTTRU *d2i_NTTRU_PUBKEY(NTTRU **a, const unsigned char **pp, long length);
 # endif
 # ifndef OPENSSL_NO_DSA
 int i2d_DSA_PUBKEY(DSA *a, unsigned char **pp);

@@ -537,6 +537,33 @@ Dilithium *EVP_PKEY_get1_Dilithium(EVP_PKEY *pkey)
 }
 #endif
 
+#ifndef OPENSSL_NO_NTTRU
+int EVP_PKEY_set1_NTTRU(EVP_PKEY *pkey, NTTRU *key)
+{
+  int ret = EVP_PKEY_assign_NTTRU(pkey, key);
+  if (ret)
+    nttru_up_ref(key);
+  return ret;
+}
+
+NTTRU *EVP_PKEY_get0_NTTRU(EVP_PKEY *pkey)
+{
+  if (pkey->type != EVP_PKEY_NTTRU) {
+    EVPerr(EVP_F_EVP_PKEY_GET0_NTTRU, EVP_R_EXPECTING_AN_NTTRU_KEY);
+    return NULL;
+  }
+  return pkey->pkey.nttru;
+}
+
+NTTRU *EVP_PKEY_get1_NTTRU(EVP_PKEY *pkey)
+{
+  NTTRU *ret = EVP_PKEY_get0_NTTRU(pkey);
+  if (ret != NULL)
+    nttru_up_ref(ret);
+  return ret;
+}
+#endif
+
 #ifndef OPENSSL_NO_DSA
 int EVP_PKEY_set1_DSA(EVP_PKEY *pkey, DSA *key)
 {
@@ -764,4 +791,24 @@ size_t EVP_PKEY_get1_tls_kyber_pk(EVP_PKEY *pkey, unsigned char **ppt)
     if (rv <= 0)
         return 0;
     return rv;
+}
+
+int EVP_PKEY_set1_tls_nttru_pk(EVP_PKEY *pkey,
+                               const unsigned char *pk, size_t pklen)
+{
+  if (pklen > INT_MAX)
+    return 0;
+  if (evp_pkey_asn1_ctrl(pkey, ASN1_PKEY_CTRL_SET1_TLS_NTTRU_PK, pklen,
+                         (void *)pk) <= 0)
+    return 0;
+  return 1;
+}
+
+size_t EVP_PKEY_get1_tls_nttru_pk(EVP_PKEY *pkey, unsigned char **ppt)
+{
+  int rv;
+  rv = evp_pkey_asn1_ctrl(pkey, ASN1_PKEY_CTRL_GET1_TLS_NTTRU_PK, 0, ppt);
+  if (rv <= 0)
+    return 0;
+  return rv;
 }

@@ -177,6 +177,11 @@
 #define NID_dilithium_with_SHA3_512             1203
 #define OBJ_dilithium_with_SHA3_512             OBJ_X9cm,12L
 
+#define SN_NTTRU                "NTTRU"
+#define LN_NTTRU                "NTTRU"
+#define NID_NTTRU               1206
+#define OBJ_NTTRU               OBJ_X9cm,13L
+
 #define SN_ansi_X9_62           "ansi-X9-62"
 #define LN_ansi_X9_62           "ANSI X9.62"
 #define NID_ansi_X9_62          405
@@ -5080,6 +5085,10 @@
 #define SN_kx_kyber             "KxKyber"
 #define LN_kx_kyber             "kx-kyber"
 #define NID_kx_kyber            1204
+
+#define SN_kx_NTTRU             "KxNTTRU"
+#define LN_kx_NTTRU             "kx-NTTRU"
+#define NID_kx_NTTRU            1207
 
 #define SN_kx_gost              "KxGOST"
 #define LN_kx_gost              "kx-gost"

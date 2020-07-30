@@ -32,6 +32,8 @@ int kyber_set0_key(Kyber *r, uint8_t *public_key,
 int kyber_set0_crt_params(Kyber *r, int mode);
 void kyber_get0_key(const Kyber *r,
                   const uint8_t **public_key, int *public_key_size);
+void kyber_get0_privkey(const Kyber *r,
+                        const uint8_t **priv_key, int *priv_key_size);
 void kyber_get0_crt_params(const Kyber *r, const int **mode);
 
 void kyber_clear_flags(Kyber *r, int flags);

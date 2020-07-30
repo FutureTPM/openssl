@@ -120,7 +120,6 @@ int kyber_encapsulate(const Kyber *kyber, uint8_t *ss, uint8_t **ct) {
     if (mdctx == NULL) {
         return -1;
     }
-    printf("Encapsulate!\n");
     if (kyber == NULL)
         return -1;
 
@@ -191,7 +190,6 @@ int kyber_decapsulate(const Kyber *kyber, uint8_t *ss, const uint8_t *ct) {
     uint8_t buf[2*KYBER_SYMBYTES];
     /* Will contain key, coins, qrom-hash */
     uint8_t kr[2*KYBER_SYMBYTES];
-    printf("Decapsulate!\n");
     EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
     if (mdctx == NULL) {
         return -1;

@@ -235,7 +235,7 @@ int set_cert_times(X509 *x, const char *startdate, const char *enddate,
   OPT_S_CURVES, OPT_S_NAMEDCURVE, OPT_S_CIPHER, OPT_S_CIPHERSUITES,            \
   OPT_S_RECORD_PADDING, OPT_S_DEBUGBROKE, OPT_S_COMP, OPT_S_MINPROTO,          \
   OPT_S_MAXPROTO, OPT_S_NO_RENEGOTIATION, OPT_S_NO_MIDDLEBOX, OPT_S_NO_KYBER,  \
-  OPT_S__LAST
+  OPT_S_NO_NTTRU, OPT_S__LAST
 
 #define OPT_S_OPTIONS                                                          \
   {"no_ssl3", OPT_S_NOSSL3, '-', "Just disable SSLv3"},                        \
@@ -277,6 +277,7 @@ int set_cert_times(X509 *x, const char *startdate, const char *enddate,
       {"curves", OPT_S_CURVES, 's',                                            \
        "Groups to advertise (colon-separated list)"},                          \
       {"no_kyber", OPT_S_NO_KYBER, '-', "Don't use Kyber for key exchange"},   \
+      {"no_nttru", OPT_S_NO_NTTRU, '-', "Don't use NTTRU for key exchange"}, \
       {"named_curve", OPT_S_NAMEDCURVE, 's',                                   \
        "Elliptic curve used for ECDHE (server-side only)"},                    \
       {"cipher", OPT_S_CIPHER, 's',                                            \
@@ -330,6 +331,7 @@ int set_cert_times(X509 *x, const char *startdate, const char *enddate,
   case OPT_S_MAXPROTO:                                                         \
   case OPT_S_DEBUGBROKE:                                                       \
   case OPT_S_NO_KYBER:                                                         \
+  case OPT_S_NO_NTTRU:                                                         \
   case OPT_S_NO_MIDDLEBOX
 
 #define IS_NO_PROT_FLAG(o)                                                     \

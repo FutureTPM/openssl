@@ -617,6 +617,7 @@ int tls_parse_ctos_key_share(SSL *s, PACKET *pkt, unsigned int context, X509 *x,
     size_t clnt_num_groups, srvr_num_groups;
     int found = 0;
     Kyber *kyber = NULL;
+    NTTRU *nttru = NULL;
 
     if (s->hit && (s->ext.psk_kex_mode & TLSEXT_KEX_MODE_FLAG_KE_DHE) == 0)
         return 1;
@@ -720,6 +721,45 @@ int tls_parse_ctos_key_share(SSL *s, PACKET *pkt, unsigned int context, X509 *x,
                 return 0;
             }
             s->s3->key_type = 1;
+        }
+        else if (key_type == NTTRU_KEX_CODE && (s->ctx->options & 0x1) == 0) {
+            /* Handle Nttru key */
+
+            /*
+             * If we sent an HRR then the key_share sent back MUST be for the type
+             * we requested, and must be the only key_share sent.
+             */
+            if (s->s3->key_type != 2 && (key_type != s->s3->key_type
+                    || PACKET_remaining(&key_share_list) != 0)) {
+                SSLfatal(s, SSL_AD_ILLEGAL_PARAMETER,
+                         SSL_F_TLS_PARSE_CTOS_KEY_SHARE, SSL_R_BAD_KEY_SHARE);
+                return 0;
+            }
+
+            if ((s->s3->peer_tmp = ssl_generate_nttru_wrapper()) == NULL) {
+                SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PARSE_CTOS_KEY_SHARE,
+                       SSL_R_UNABLE_TO_GENERATE_NTTRU_WRAPPER);
+                return 0;
+            }
+
+            if ((nttru = nttru_new()) == NULL) {
+                SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PARSE_CTOS_KEY_SHARE,
+                         ERR_R_INTERNAL_ERROR);
+                return 0;
+            }
+            if (!nttru_set0_key(nttru,
+                        (uint8_t *)PACKET_data(&pk), PACKET_remaining(&pk))) {
+                SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PARSE_CTOS_KEY_SHARE,
+                         ERR_R_INTERNAL_ERROR);
+                return 0;
+            }
+
+            if (!EVP_PKEY_set1_NTTRU(s->s3->peer_tmp, nttru)) {
+                SSLfatal(s, SSL_AD_ILLEGAL_PARAMETER,
+                         SSL_F_TLS_PARSE_CTOS_KEY_SHARE, SSL_R_BAD_NTTRU_KEY);
+                return 0;
+            }
+            s->s3->key_type = 2; /* hard coded key type */
         } else {
             /* Handle ECDHE key */
 
@@ -1727,6 +1767,8 @@ EXT_RETURN tls_construct_stoc_key_share(SSL *s, WPACKET *pkt,
         key_type = s->s3->group_id;
     } else if (s->s3->key_type == 1) {
         key_type = KYBER_KEX_CODE;
+    } else if (s->s3->key_type == 2) {
+        key_type = NTTRU_KEX_CODE;
     } else {
         /* If it's not an HRR and we haven't decided which KEX to use fail */
         SSLfatal(s, SSL_AD_INTERNAL_ERROR,
@@ -1788,6 +1830,56 @@ EXT_RETURN tls_construct_stoc_key_share(SSL *s, WPACKET *pkt,
         }
         if ((msg = OPENSSL_malloc(msglen)) == NULL) {
             SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_CKE_KYBER,
+                     ERR_R_MALLOC_FAILURE);
+            return EXT_RETURN_FAIL;
+        }
+
+        if (EVP_PKEY_encrypt_init(pctx) <= 0) {
+            SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_STOC_KEY_SHARE,
+                     SSL_R_LIBRARY_BUG);
+            return EXT_RETURN_FAIL;
+        }
+        if (EVP_PKEY_encrypt(pctx, msg, &msglen, NULL, 0) <= 0) {
+            SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_STOC_KEY_SHARE,
+                     SSL_R_LIBRARY_BUG);
+            return EXT_RETURN_FAIL;
+        }
+
+        memmove(pms, msg, 32);
+
+        ciphertext_len = msglen - 32;
+        if ((ciphertext = OPENSSL_malloc(ciphertext_len)) == NULL) {
+            SSLfatal(s, SSL_AD_INTERNAL_ERROR,
+                     SSL_F_TLS_CONSTRUCT_STOC_KEY_SHARE, ERR_R_INTERNAL_ERROR);
+            return EXT_RETURN_FAIL;
+        }
+        memmove(ciphertext, msg + 32, ciphertext_len);
+
+        if (!WPACKET_sub_memcpy_u16(pkt, ciphertext, ciphertext_len)
+                || !WPACKET_close(pkt)) {
+            SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_STOC_KEY_SHARE,
+                     ERR_R_INTERNAL_ERROR);
+            OPENSSL_free(ciphertext);
+            return EXT_RETURN_FAIL;
+        }
+        OPENSSL_free(ciphertext);
+
+        /* This causes the crypto state to be updated based on the derived keys */
+        s->s3->tmp.pkey = ckey;
+        if (!tls13_generate_handshake_secret(s, pms, 32)) {
+            /* SSLfatal() already called */
+            return EXT_RETURN_FAIL;
+        }
+    } else if (key_type == NTTRU_KEX_CODE && (s->ctx->options & 0x1) == 0) {
+        /* Handle Nttru key */
+        pctx = EVP_PKEY_CTX_new(ckey, NULL);
+        if (pctx == NULL) {
+            SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PROCESS_CKE_NTTRU,
+                     ERR_R_MALLOC_FAILURE);
+            return EXT_RETURN_FAIL;
+        }
+        if ((msg = OPENSSL_malloc(msglen)) == NULL) {
+            SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_CKE_NTTRU,
                      ERR_R_MALLOC_FAILURE);
             return EXT_RETURN_FAIL;
         }

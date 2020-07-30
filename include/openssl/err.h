@@ -97,6 +97,7 @@ typedef struct err_state_st {
 # define ERR_LIB_SM2             53
 # define ERR_LIB_KYBER           54
 # define ERR_LIB_DILITHIUM       55
+# define ERR_LIB_NTTRU           56
 
 # define ERR_LIB_USER            128
 
@@ -104,6 +105,7 @@ typedef struct err_state_st {
 # define BNerr(f,r)   ERR_PUT_error(ERR_LIB_BN,(f),(r),OPENSSL_FILE,OPENSSL_LINE)
 # define RSAerr(f,r)  ERR_PUT_error(ERR_LIB_RSA,(f),(r),OPENSSL_FILE,OPENSSL_LINE)
 # define Kybererr(f,r)  ERR_PUT_error(ERR_LIB_KYBER,(f),(r),OPENSSL_FILE,OPENSSL_LINE)
+# define NTTRUerr(f,r)  ERR_PUT_error(ERR_LIB_NTTRU,(f),(r),OPENSSL_FILE,OPENSSL_LINE)
 # define Dilithiumerr(f,r)  ERR_PUT_error(ERR_LIB_DILITHIUM,(f),(r),OPENSSL_FILE,OPENSSL_LINE)
 # define DHerr(f,r)   ERR_PUT_error(ERR_LIB_DH,(f),(r),OPENSSL_FILE,OPENSSL_LINE)
 # define EVPerr(f,r)  ERR_PUT_error(ERR_LIB_EVP,(f),(r),OPENSSL_FILE,OPENSSL_LINE)
@@ -179,6 +181,7 @@ typedef struct err_state_st {
 # define ERR_R_BN_LIB    ERR_LIB_BN/* 3 */
 # define ERR_R_RSA_LIB   ERR_LIB_RSA/* 4 */
 # define ERR_R_KYBER_LIB ERR_LIB_KYBER
+# define ERR_R_NTTRU_LIB ERR_LIB_NTTRU
 # define ERR_R_DILITHIUM_LIB ERR_LIB_DILITHIUM
 # define ERR_R_DH_LIB    ERR_LIB_DH/* 5 */
 # define ERR_R_EVP_LIB   ERR_LIB_EVP/* 6 */

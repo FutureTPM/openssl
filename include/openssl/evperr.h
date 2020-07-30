@@ -119,7 +119,7 @@ int ERR_load_EVP_strings(void);
 # define EVP_F_UPDATE                                     173
 # define EVP_F_EVP_PKEY_GET0_KYBER                        206
 # define EVP_F_EVP_PKEY_GET0_DILITHIUM                    207
-
+# define EVP_F_EVP_PKEY_GET0_NTTRU                        208
 /*
  * EVP reason codes.
  */
@@ -194,5 +194,6 @@ int ERR_load_EVP_strings(void);
 # define EVP_R_WRONG_FINAL_BLOCK_LENGTH                   109
 # define EVP_R_EXPECTING_AN_KYBER_KEY                     183
 # define EVP_R_EXPECTING_AN_DILITHIUM_KEY                 184
+# define EVP_R_EXPECTING_AN_NTTRU_KEY                     185
 
 #endif

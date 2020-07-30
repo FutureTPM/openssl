@@ -732,6 +732,9 @@ static void print_key_details(BIO *out, EVP_PKEY *key) {
     case EVP_PKEY_KYBER:
       algname = "Kyber";
       break;
+    case EVP_PKEY_NTTRU:
+      algname = "NTTRU";
+      break;
     case EVP_PKEY_DSA:
       algname = "DSA";
       break;
